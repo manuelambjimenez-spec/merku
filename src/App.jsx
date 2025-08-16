@@ -26,7 +26,7 @@ import ProductCard from "./ProductCard";
 // Logo component
 const MerkuLogo = ({ className }) => (
   <img 
-    src="src/assets/merku-logo-mini.png" 
+    src="/merku-logo-mini.png" 
     alt="Merku Logo" 
     className={className}
   />
