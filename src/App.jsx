@@ -454,11 +454,11 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
             className="flex-1 bg-transparent border-none focus:outline-none placeholder-[#d3d4d7]"
           />
           <button
-            onClick={() => handleBuscar()}
-            className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
-          >
-            <ChevronDown className="w-4 h-4 text-black hover:text-white transition-colors" />
-          </button>
+		onClick={() => handleBuscar()}
+	className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
+	>
+	<ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
+</button>
         </div>
 
         {/* CATEGORÍAS RESTAURADAS */}
