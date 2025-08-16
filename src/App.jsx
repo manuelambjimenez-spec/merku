@@ -6,7 +6,7 @@ import {
   Settings,
   User,
   LogOut,
-  ArrowDown,
+  ChevronDown,
   Heart,
   Share2,
   Bookmark,
@@ -31,7 +31,7 @@ const MerkuLogo = ({ className }) => (
   />
 );
 
-// Mock products data
+// Mock products data - mantenemos los mismos productos del archivo original
 const products = [
   { id: 1, name: "Wireless Headphones", price: "$89.99", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" },
   { id: 2, name: "Summer Dress", price: "$45.00", category: "fashion", store: "Zara", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200&h=200&fit=crop" },
@@ -92,11 +92,12 @@ function Footer({ onNavigate }) {
   );
 }
 
-// Main shopping component
+// Main shopping component - RESTAURADA CON TODA LA FUNCIONALIDAD
 function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, userPreferences, setUserPreferences, isRegisteredUser, setIsRegisteredUser }) {
   const [menuAbierto, setMenuAbierto] = useState(true);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productosGuardados, setProductosGuardados] = useState([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("All");
   const [mostrarGuardados, setMostrarGuardados] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [mensajeIA, setMensajeIA] = useState("");
@@ -106,24 +107,15 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [haBuscado, setHaBuscado] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
-  const [paginaActual, setPaginaActual] = useState(1);
   const [datosRegistro, setDatosRegistro] = useState({
     nombre: "",
     email: "",
     password: ""
   });
-  const [filtros, setFiltros] = useState({
-    categoria: "All",
-    precio: "All",
-    tienda: "All"
-  });
   
   // New states for preferences
   const [showPreferencePanel, setShowPreferencePanel] = useState(false);
   const [showPreferenceReminder, setShowPreferenceReminder] = useState(false);
-
-  const carouselRef = useRef(null);
-  const productosPorPagina = 8;
 
   // Load user data and preferences on component mount
   useEffect(() => {
@@ -146,19 +138,17 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
         setProductosGuardados(JSON.parse(guardados));
       }
 
-      // Load user preferences - first try user-specific key, then fallback to individual keys
+      // Load user preferences
       let savedPreferences = null;
       try {
         const userSpecificPrefs = localStorage.getItem(`preferencias_${savedUser}`);
         if (userSpecificPrefs) {
           savedPreferences = JSON.parse(userSpecificPrefs);
-          console.log("Loaded user-specific preferences:", savedPreferences);
         }
       } catch (error) {
         console.log("Error loading user-specific preferences:", error);
       }
 
-      // Fallback to individual keys if no user-specific preferences found
       if (!savedPreferences) {
         savedPreferences = {
           gender: localStorage.getItem("user_gender") || '',
@@ -168,20 +158,8 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
           pantsSize: localStorage.getItem("user_pants_size") || '',
           shoeSize: localStorage.getItem("user_shoe_size") || ''
         };
-        console.log("Loaded individual preferences:", savedPreferences);
       }
 
-      setUserPreferences(savedPreferences);
-    } else {
-      // Load user preferences for non-logged users (fallback)
-      const savedPreferences = {
-        gender: localStorage.getItem("user_gender") || '',
-        customGender: localStorage.getItem("user_custom_gender") || '',
-        pronouns: localStorage.getItem("user_pronouns") || '',
-        clothingSize: localStorage.getItem("user_clothing_size") || '',
-        pantsSize: localStorage.getItem("user_pants_size") || '',
-        shoeSize: localStorage.getItem("user_shoe_size") || ''
-      };
       setUserPreferences(savedPreferences);
     }
   }, []);
@@ -190,22 +168,18 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   useEffect(() => {
     if (!isRegisteredUser || !usuario) return;
 
-    // Check if user has any preferences filled
     const hasPreferences = Object.values(userPreferences).some(value => value !== '');
-    
-    if (hasPreferences) return; // Don't show reminder if user has preferences
+    if (hasPreferences) return;
 
     const lastReminderDate = localStorage.getItem("last_preference_reminder");
     const today = new Date().toDateString();
     
     if (!lastReminderDate) {
-      // First time - show reminder after 2 seconds
       const timer = setTimeout(() => {
         setShowPreferenceReminder(true);
       }, 2000);
       return () => clearTimeout(timer);
     } else {
-      // Check if 3 days have passed
       const lastDate = new Date(lastReminderDate);
       const todayDate = new Date(today);
       const diffTime = Math.abs(todayDate - lastDate);
@@ -249,24 +223,6 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     return () => document.removeEventListener("keydown", handleEsc);
   }, [productoSeleccionado, mostrarRegistro, showPreferencePanel, showPreferenceReminder]);
 
-  // Efecto para navegación del carrusel con teclado
-  useEffect(() => {
-    const handleCarouselKeyboard = (e) => {
-      if (carouselRef.current && document.activeElement === carouselRef.current) {
-        if (e.key === "ArrowLeft") {
-          e.preventDefault();
-          scrollCarousel('left');
-        } else if (e.key === "ArrowRight") {
-          e.preventDefault();
-          scrollCarousel('right');
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleCarouselKeyboard);
-    return () => document.removeEventListener("keydown", handleCarouselKeyboard);
-  }, []);
-
   const handleLogin = () => {
     const nombre = prompt("Enter your name");
     if (nombre) {
@@ -308,7 +264,6 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   };
 
   const handleSavePreferences = (preferences) => {
-    // Save to localStorage with individual keys (backward compatibility)
     localStorage.setItem("user_gender", preferences.gender);
     localStorage.setItem("user_custom_gender", preferences.customGender || '');
     localStorage.setItem("user_pronouns", preferences.pronouns || '');
@@ -316,17 +271,11 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     localStorage.setItem("user_pants_size", preferences.pantsSize);
     localStorage.setItem("user_shoe_size", preferences.shoeSize);
     
-    // Also save as a single object with user-specific key for filtering
     if (usuario) {
       localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
     }
     
-    // Update state
     setUserPreferences(preferences);
-    
-    // Log for testing (as requested)
-    console.log("Saved user preferences:", preferences);
-    console.log("Saved to key:", `preferencias_${usuario}`);
   };
 
   const handlePreferenceReminderClose = () => {
@@ -340,12 +289,86 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     localStorage.setItem("last_preference_reminder", new Date().toDateString());
   };
 
+  const handleGuardar = (producto) => {
+    if (!productosGuardados.some((p) => p.id === producto.id)) {
+      setProductosGuardados([...productosGuardados, producto]);
+    }
+  };
+
+  const cerrarDetalle = () => setProductoSeleccionado(null);
+
+  const handleMostrarGuardados = () => {
+    setMostrarGuardados((prev) => !prev);
+    setCategoriaSeleccionada("All");
+  };
+
+  // FUNCIONALIDAD DE BÚSQUEDA RESTAURADA
+  const handleBuscar = (termino = busqueda) => {
+    if (!termino.trim()) return;
+    setBuscando(true);
+    setMensajeIA(`Searching for: "${termino}"...`);
+    setBusqueda(termino);
+    setOcultarInstrucciones(true);
+    setHaBuscado(true);
+
+    setHistorial((prev) => {
+      const newHist = [termino, ...prev.filter((item) => item !== termino)];
+      return newHist.slice(0, 5);
+    });
+
+    setTimeout(() => {
+      const b = termino.toLowerCase();
+      if (b.includes("headphones")) {
+        setMensajeIA("Great choice! These headphones might be what you're looking for.");
+        setRecomendaciones(products.filter((p) => p.category === "tech" && !p.name.toLowerCase().includes("headphones")));
+      } else if (b.includes("dress")) {
+        setMensajeIA("Light and fresh — here are some dresses perfect for summer.");
+        setRecomendaciones(products.filter((p) => p.category === "fashion" && !p.name.toLowerCase().includes("dress")));
+      } else if (b.includes("shoes") || b.includes("sneakers")) {
+        setMensajeIA("Let's find you the perfect pair of shoes.");
+        setRecomendaciones(products.filter((p) => p.category === "fashion" && !p.name.toLowerCase().includes("shoes") && !p.name.toLowerCase().includes("sneakers")));
+      } else if (b.includes("watch")) {
+        setMensajeIA("Here are some stylish watches you might love.");
+        setRecomendaciones(products.filter((p) => p.category === "tech" && !p.name.toLowerCase().includes("watch")));
+      } else {
+        setMensajeIA(`These results match your search: "${termino}"`);
+        setRecomendaciones([]);
+      }
+      setBuscando(false);
+    }, 1500);
+  };
+
+  const handleInputChange = (e) => {
+    setBusqueda(e.target.value);
+    if (!ocultarInstrucciones) setOcultarInstrucciones(true);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleBuscar();
+    }
+  };
+
+  // FILTRADO DE PRODUCTOS RESTAURADO
+  const categorias = ["All", ...new Set(products.map((p) => p.category))];
+  const fuenteProductos = mostrarGuardados ? productosGuardados : products;
+  const productosFiltrados = haBuscado
+    ? fuenteProductos
+        .filter((p) =>
+          categoriaSeleccionada === "All" ? true : p.category === categoriaSeleccionada
+        )
+        .filter((p) =>
+          (p.name ?? "").toLowerCase().includes(busqueda.toLowerCase()) ||
+          (p.category ?? "").toLowerCase().includes(busqueda.toLowerCase()) ||
+          (p.store ?? "").toLowerCase().includes(busqueda.toLowerCase())
+        )
+    : [];
+
   return (
     <div className="min-h-screen bg-white flex">
       {/* Sidebar */}
       {logueado && (
         <aside 
-          id="sidebar"
           className={`${menuAbierto ? "w-56" : "w-12"} transition-all duration-300 bg-[#f3f4f6] p-4 flex flex-col h-screen fixed left-0 top-0 z-40`}
         >
           <button className="self-end mb-2" onClick={() => setMenuAbierto(!menuAbierto)}>
@@ -354,14 +377,28 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
           {menuAbierto ? (
             <MerkuLogo className="w-12 self-start" />
           ) : (
-            <MerkuLogo className="w-8 self-center" />
+            <div className="w-8 h-8 rounded-full bg-[#f7941d] self-center" />
           )}
           {menuAbierto && (
             <div className="flex flex-col gap-4 flex-1 mt-6">
               <button className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold">
                 <PenLine size={16} /> New chat
               </button>
-              <button className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold">
+              {historial.map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleBuscar(item)}
+                  className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-tight"
+                >
+                  {item}
+                </button>
+              ))}
+              <button
+                onClick={handleMostrarGuardados}
+                className={`text-left text-xs flex items-center gap-2 ${
+                  mostrarGuardados ? "text-[#f7941d] font-semibold" : "text-black"
+                } hover:font-semibold`}
+              >
                 <Heart size={16} /> Saved
               </button>
               <button 
@@ -390,30 +427,146 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
       )}
 
       <main className={`flex-1 flex flex-col items-center px-4 py-6 sm:py-10 min-h-screen ${logueado ? (menuAbierto ? "ml-56" : "ml-12") : ""} transition-all duration-300`}>
-        {/* Main content would go here */}
-        <div className="text-center mt-20">
-          <MerkuLogo className="w-20 mb-4 mx-auto" />
-          <h1 className="text-2xl font-bold">Merku Shopping Assistant</h1>
-          <p className="text-gray-600 mt-2">This is a simplified version for the profile demo</p>
-          
-          {/* Demo buttons for testing */}
+        {/* Botones de Login/Register cuando no está logueado */}
+        <div className={`absolute top-4 right-4 space-x-2 ${logueado ? "z-30" : ""}`}>
           {!logueado && (
-            <div className="mt-8 space-y-4">
-              <button
-                onClick={handleLogin}
-                className="px-6 py-2 bg-[#f7941d] text-white rounded-lg hover:bg-black transition-colors"
-              >
-                Quick Login (Demo)
-              </button>
-              <button
-                onClick={() => setMostrarRegistro(true)}
-                className="block mx-auto px-6 py-2 border border-[#f7941d] text-[#f7941d] rounded-lg hover:bg-[#f7941d] hover:text-white transition-colors"
-              >
-                Register (Demo)
-              </button>
-            </div>
+            <>
+              <button onClick={handleLogin} className="text-sm text-black hover:underline">Login</button>
+              <button onClick={() => setMostrarRegistro(true)} className="text-sm text-black hover:underline">Register</button>
+            </>
           )}
         </div>
+
+        {/* INTERFAZ PRINCIPAL RESTAURADA */}
+        <MerkuLogo className="w-20 sm:w-24 mt-6 sm:mt-10 mb-4" />
+        <h1 className="text-2xl font-bold text-center">Hi, I'm Merku</h1>
+        
+        {/* INSTRUCCIONES RESTAURADAS */}
+        {!ocultarInstrucciones && (
+          <div className="text-center text-xs text-[#c2bfbf] mt-8 max-w-md">
+            <p className="mb-2">
+              <span className="text-[#f7941d] font-semibold">Merku</span> is your intelligent IA based shopping assistant, helping you find the right product instantly based on your needs.
+            </p>
+            <p className="mt-4 font-semibold text-[#f7941d]">How it works:</p>
+            <ol className="list-decimal list-inside text-[#c2bfbf]">
+              <li>
+                <span className="text-[#f7941d]">1.</span> Type what you're looking for (e.g. wireless earbuds under $100, office chair with lumbar support)
+              </li>
+              <li>
+                <span className="text-[#f7941d]">2.</span> <span className="text-[#f7941d]">Merku</span> filters and shows smart results in your favourite sites
+              </li>
+              <li>
+                <span className="text-[#f7941d]">3.</span> You choose what fits you best — simple!
+              </li>
+            </ol>
+          </div>
+        )}
+
+        {/* BARRA DE BÚSQUEDA RESTAURADA */}
+        <div className="bg-[#f3f4f6] rounded-xl px-4 py-2 flex items-center w-full max-w-xl mb-4 mt-6">
+          <input
+            type="text"
+            placeholder="e.g. running shoes size 38"
+            value={busqueda}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            className="flex-1 bg-transparent border-none focus:outline-none placeholder-[#d3d4d7]"
+          />
+          <button
+            onClick={() => handleBuscar()}
+            className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
+          >
+            <ChevronDown className="w-4 h-4 text-black hover:text-white transition-colors" />
+          </button>
+        </div>
+
+        {/* CATEGORÍAS RESTAURADAS */}
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          {categorias.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoriaSeleccionada(cat)}
+              className={`text-xs px-3 py-1 rounded-full border ${
+                categoriaSeleccionada === cat
+                  ? "bg-[#f7941d] text-white border-[#f7941d]"
+                  : "text-[#c2bfbf] border-[#c2bfbf] hover:border-black hover:text-black"
+              } transition`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* MENSAJE IA RESTAURADO */}
+        <p className="text-sm text-center text-[#c2bfbf] mb-4 min-h-[1.5rem]">
+          {buscando ? <span className="animate-pulse">Searching...</span> : mensajeIA}
+        </p>
+
+        {/* GRID DE PRODUCTOS RESTAURADO */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+          {productosFiltrados.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onClick={() => setProductoSeleccionado(product)}
+            />
+          ))}
+        </div>
+
+        {/* RECOMENDACIONES RESTAURADAS */}
+        {recomendaciones.length > 0 && (
+          <div className="w-full max-w-6xl mt-4">
+            <h2 className="text-sm font-semibold mb-2 text-gray-600 px-1">
+              También te puede interesar:
+            </h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 px-1">
+              {recomendaciones.map((product) => (
+                <div key={product.id} className="min-w-[160px] max-w-[180px]">
+                  <ProductCard
+                    product={product}
+                    onClick={() => setProductoSeleccionado(product)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MODAL DE PRODUCTO RESTAURADO */}
+        {productoSeleccionado && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-11/12 max-w-md relative">
+              <button
+                className="absolute top-2 right-2 text-black hover:text-gray-600 text-xl font-bold"
+                onClick={cerrarDetalle}
+              >
+                ×
+              </button>
+              <img
+                src={productoSeleccionado.image}
+                alt={productoSeleccionado.name}
+                className="w-full h-48 object-cover rounded mb-4"
+              />
+              <h2 className="text-lg font-semibold mb-1">
+                {productoSeleccionado.name}
+              </h2>
+              <p className="text-sm text-gray-500 mb-2">
+                {productoSeleccionado.store}
+              </p>
+              <p className="text-black font-semibold mb-2">
+                {productoSeleccionado.price}
+              </p>
+              <div className="flex gap-4">
+                <button onClick={() => handleGuardar(productoSeleccionado)}>
+                  <Bookmark className="text-[#f7941d] w-5 h-5 hover:text-black" />
+                </button>
+                <button>
+                  <Share2 className="text-[#f7941d] w-5 h-5 hover:text-black" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Registration Modal */}
         {mostrarRegistro && (
@@ -529,7 +682,6 @@ export default function App() {
     shoeSize: ''
   });
   const [isRegisteredUser, setIsRegisteredUser] = useState(false);
-  const [showPreferencePanel, setShowPreferencePanel] = useState(false);
 
   const handleNavigate = (page) => {
     setCurrentPage(page);
@@ -569,7 +721,6 @@ export default function App() {
           setIsRegisteredUser={setIsRegisteredUser}
           userPreferences={userPreferences}
           onSavePreferences={handleSavePreferences}
-          setShowPreferencePanel={setShowPreferencePanel}
         />
       );
     case 'privacy':
@@ -580,25 +731,17 @@ export default function App() {
       return <CookiesPolicy onBack={handleBack} />;
     default:
       return (
-        <div>
-          <Shopping 
-            onNavigate={handleNavigate} 
-            usuario={usuario} 
-            setUsuario={setUsuario} 
-            logueado={logueado} 
-            setLogueado={setLogueado} 
-            userPreferences={userPreferences} 
-            setUserPreferences={setUserPreferences} 
-            isRegisteredUser={isRegisteredUser} 
-            setIsRegisteredUser={setIsRegisteredUser} 
-          />
-          <PreferencePanel
-            isOpen={showPreferencePanel}
-            onClose={() => setShowPreferencePanel(false)}
-            userPreferences={userPreferences}
-            onSavePreferences={handleSavePreferences}
-          />
-        </div>
+        <Shopping 
+          onNavigate={handleNavigate} 
+          usuario={usuario} 
+          setUsuario={setUsuario} 
+          logueado={logueado} 
+          setLogueado={setLogueado} 
+          userPreferences={userPreferences} 
+          setUserPreferences={setUserPreferences} 
+          isRegisteredUser={isRegisteredUser} 
+          setIsRegisteredUser={setIsRegisteredUser} 
+        />
       );
   }
 }
