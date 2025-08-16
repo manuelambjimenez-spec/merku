@@ -21,6 +21,7 @@ import {
 import { PreferencePanel, PreferenceReminder } from "./components/PreferenceComponents";
 import { UserProfile } from "./components/UserProfile";
 import { PrivacyPolicy, TermsOfUse, CookiesPolicy } from "./components/LegalPages";
+import ProductCard from "./ProductCard";
 
 // Logo component
 const MerkuLogo = ({ className }) => (
@@ -31,7 +32,6 @@ const MerkuLogo = ({ className }) => (
   />
 );
 
-// Mock products data - mantenemos los mismos productos del archivo original
 const products = [
   { id: 1, name: "Wireless Headphones", price: "$89.99", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" },
   { id: 2, name: "Summer Dress", price: "$45.00", category: "fashion", store: "Zara", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200&h=200&fit=crop" },
@@ -44,25 +44,6 @@ const products = [
   { id: 9, name: "Laptop Stand", price: "$35.00", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop" },
   { id: 10, name: "Designer Jeans", price: "$99.99", category: "fashion", store: "Levi's", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=200&fit=crop" }
 ];
-
-// ProductCard component
-function ProductCard({ product, onClick }) {
-  return (
-    <div 
-      className="bg-white rounded-lg p-3 cursor-pointer hover:shadow-lg transition-shadow border border-gray-100"
-      onClick={onClick}
-    >
-      <img
-        src={product.image}
-        alt={product.name}
-        className="w-full h-32 object-cover rounded mb-2"
-      />
-      <h3 className="font-medium text-sm mb-1 line-clamp-2">{product.name}</h3>
-      <p className="text-xs text-gray-500 mb-1">{product.store}</p>
-      <p className="font-semibold text-sm">{product.price}</p>
-    </div>
-  );
-}
 
 // Footer component
 function Footer({ onNavigate }) {
