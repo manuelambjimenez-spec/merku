@@ -14,7 +14,8 @@ import {
   ChevronRight,
   X,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  ArrowUp 
 } from "lucide-react";
 
 // Import separated components
