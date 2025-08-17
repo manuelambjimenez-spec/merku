@@ -694,17 +694,11 @@ export default function App() {
   switch (currentPage) {
     case 'profile':
   return (
-    <UserProfile 
-      onBack={handleBack}
-      onNavigate={handleNavigate}
-      usuario={usuario}
-      setUsuario={setUsuario}
-      setLogueado={setLogueado}
-      setIsRegisteredUser={setIsRegisteredUser}
-      userPreferences={userPreferences}
-      onSavePreferences={handleSavePreferences}
-      setShowPreferencePanel={setShowPreferencePanel}
-    />
+    <div className="min-h-screen bg-white p-6">
+      <button onClick={handleBack} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">Back</button>
+      <h1>Profile Test - This should work</h1>
+      <p>Usuario: {usuario}</p>
+    </div>
   );
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
