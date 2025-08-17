@@ -15,6 +15,8 @@ import {
   X,
   Check,
   AlertTriangle,
+  Eye,
+  EyeOff,
   ArrowUp 
 } from "lucide-react";
 
@@ -89,10 +91,18 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [haBuscado, setHaBuscado] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  
+  // Updated datosRegistro state with all new fields
   const [datosRegistro, setDatosRegistro] = useState({
     nombre: "",
     email: "",
-    password: ""
+    password: "",
+    gender: "",
+    customGender: "",
+    pronouns: "",
+    clothingSize: "",
+    pantsSize: "",
+    shoeSize: ""
   });
   
   // New states for preferences
@@ -224,17 +234,50 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     setProductosGuardados([]);
   };
 
+  // Updated handleRegistro function
   const handleRegistro = (e) => {
     e.preventDefault();
     if (datosRegistro.nombre && datosRegistro.email && datosRegistro.password) {
-      setUsuario(datosRegistro.nombre);
-      setIsRegisteredUser(true);
+      // Save all user data to localStorage
       localStorage.setItem("usuario", datosRegistro.nombre);
       localStorage.setItem("user_email", datosRegistro.email);
       localStorage.setItem("user_password", datosRegistro.password);
+      localStorage.setItem("user_gender", datosRegistro.gender || '');
+      localStorage.setItem("user_custom_gender", datosRegistro.customGender || '');
+      localStorage.setItem("user_pronouns", datosRegistro.pronouns || '');
+      localStorage.setItem("user_clothing_size", datosRegistro.clothingSize || '');
+      localStorage.setItem("user_pants_size", datosRegistro.pantsSize || '');
+      localStorage.setItem("user_shoe_size", datosRegistro.shoeSize || '');
+      
+      // Update states
+      setUsuario(datosRegistro.nombre);
+      setIsRegisteredUser(true);
       setLogueado(true);
+      
+      // Update user preferences
+      const newPreferences = {
+        gender: datosRegistro.gender,
+        customGender: datosRegistro.customGender,
+        pronouns: datosRegistro.pronouns,
+        clothingSize: datosRegistro.clothingSize,
+        pantsSize: datosRegistro.pantsSize,
+        shoeSize: datosRegistro.shoeSize
+      };
+      setUserPreferences(newPreferences);
+      
+      // Close modal and reset form
       setMostrarRegistro(false);
-      setDatosRegistro({ nombre: "", email: "", password: "" });
+      setDatosRegistro({
+        nombre: "",
+        email: "",
+        password: "",
+        gender: "",
+        customGender: "",
+        pronouns: "",
+        clothingSize: "",
+        pantsSize: "",
+        shoeSize: ""
+      });
     }
   };
 
@@ -245,19 +288,36 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     }));
   };
 
+  // Updated handleSavePreferences function
   const handleSavePreferences = (preferences) => {
-    localStorage.setItem("user_gender", preferences.gender);
+    localStorage.setItem("user_gender", preferences.gender || '');
     localStorage.setItem("user_custom_gender", preferences.customGender || '');
     localStorage.setItem("user_pronouns", preferences.pronouns || '');
-    localStorage.setItem("user_clothing_size", preferences.clothingSize);
-    localStorage.setItem("user_pants_size", preferences.pantsSize);
-    localStorage.setItem("user_shoe_size", preferences.shoeSize);
+    localStorage.setItem("user_clothing_size", preferences.clothingSize || '');
+    localStorage.setItem("user_pants_size", preferences.pantsSize || '');
+    localStorage.setItem("user_shoe_size", preferences.shoeSize || '');
     
     if (usuario) {
       localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
     }
     
     setUserPreferences(preferences);
+  };
+
+  // Helper function to determine target gender for results
+  const getTargetGender = (userPreferences) => {
+    const { gender, customGender, pronouns } = userPreferences;
+    
+    if (gender === 'man') return 'man';
+    if (gender === 'woman') return 'woman';
+    if (gender === 'prefer-not-to-say') return 'both';
+    if (gender === 'custom') {
+      if (pronouns === 'man') return 'man';
+      if (pronouns === 'woman') return 'woman';
+      return 'both'; // For 'other' or no pronouns specified
+    }
+    
+    return 'both'; // Default fallback
   };
 
   const handlePreferenceReminderClose = () => {
@@ -367,14 +427,14 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <PenLine size={16} /> New chat
               </button>
               {historial.map((item, idx) => (
-	<button
-		key={idx}
-		onClick={() => handleBuscar(item)}
-		className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
-	>
-    {item}
-	</button>
-	))}
+        <button
+          key={idx}
+          onClick={() => handleBuscar(item)}
+          className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
+        >
+          {item}
+        </button>
+      ))}
               <button
                 onClick={handleMostrarGuardados}
                 className={`text-left text-xs flex items-center gap-2 ${
@@ -384,11 +444,11 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <Heart size={16} /> Saved
               </button>
               <button 
-  onClick={() => setShowPreferencePanel(true)}
-  className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
->
-  <Settings size={16} /> Preferences
-</button>
+                onClick={() => setShowPreferencePanel(true)}
+                className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
+              >
+                <Settings size={16} /> Preferences
+              </button>
               <button 
                 onClick={() => onNavigate('profile')}
                 className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
@@ -455,11 +515,11 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
             className="flex-1 bg-transparent border-none focus:outline-none placeholder-[#d3d4d7]"
           />
           <button
-		onClick={() => handleBuscar()}
-	className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
-	>
-	<ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
-</button>
+            onClick={() => handleBuscar()}
+            className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
+          >
+            <ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
+          </button>
         </div>
 
         {/* CATEGORÍAS RESTAURADAS */}
@@ -550,10 +610,10 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
           </div>
         )}
 
-        {/* Registration Modal */}
+        {/* Registration Modal - VERSIÓN COMPLETA */}
         {mostrarRegistro && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-11/12 max-w-md relative">
+            <div className="bg-white p-6 rounded-lg w-11/12 max-w-lg relative max-h-[90vh] overflow-y-auto">
               <button
                 className="absolute top-2 right-2 text-black hover:text-gray-600"
                 onClick={() => setMostrarRegistro(false)}
@@ -567,45 +627,168 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
               </div>
 
               <form onSubmit={handleRegistro} className="space-y-4">
+                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name
+                    Name *
                   </label>
                   <input
                     type="text"
                     value={datosRegistro.nombre}
                     onChange={(e) => handleInputRegistro('nombre', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="Your full name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={datosRegistro.email}
-                    onChange={(e) => handleInputRegistro('email', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
                     placeholder="your@email.com"
                     required
                   />
                 </div>
 
+                {/* Password */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password
+                    Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="password"
+                      value={datosRegistro.password}
+                      onChange={(e) => handleInputRegistro('password', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
+                      placeholder="Create a password"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Gender
+                  </label>
+                  <select
+                    value={datosRegistro.gender || ''}
+                    onChange={(e) => {
+                      const gender = e.target.value;
+                      handleInputRegistro('gender', gender);
+                      if (gender !== 'custom') {
+                        handleInputRegistro('customGender', '');
+                        handleInputRegistro('pronouns', '');
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="woman">Mujer</option>
+                    <option value="man">Hombre</option>
+                    <option value="prefer-not-to-say">Prefiero no decirlo</option>
+                    <option value="custom">Personalizado</option>
+                  </select>
+                </div>
+
+                {/* Custom Gender Fields */}
+                {datosRegistro.gender === 'custom' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ¿Cuál es tu género?
+                      </label>
+                      <input
+                        type="text"
+                        value={datosRegistro.customGender || ''}
+                        onChange={(e) => handleInputRegistro('customGender', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
+                        placeholder="Enter your gender"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-3">
+                        Prefiero que se me trate como:
+                      </label>
+                      <div className="space-y-2">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="pronouns"
+                            value="woman"
+                            checked={datosRegistro.pronouns === 'woman'}
+                            onChange={(e) => handleInputRegistro('pronouns', e.target.value)}
+                            className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                          />
+                          <span className="text-sm">Mujer</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="pronouns"
+                            value="man"
+                            checked={datosRegistro.pronouns === 'man'}
+                            onChange={(e) => handleInputRegistro('pronouns', e.target.value)}
+                            className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                          />
+                          <span className="text-sm">Hombre</span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="pronouns"
+                            value="other"
+                            checked={datosRegistro.pronouns === 'other'}
+                            onChange={(e) => handleInputRegistro('pronouns', e.target.value)}
+                            className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                          />
+                          <span className="text-sm">Otro</span>
+                        </label>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Clothing Size */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Talla de ropa general
+                  </label>
+                  <select
+                    value={datosRegistro.clothingSize || ''}
+                    onChange={(e) => handleInputRegistro('clothingSize', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
+                  >
+                    <option value="">Select size</option>
+                    <option value="XS">XS</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                    <option value="3XL">3XL</option>
+                  </select>
+                </div>
+
+                {/* Pants/Skirt Size */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Talla de pantalón/falda
                   </label>
                   <input
-                    type="password"
-                    value={datosRegistro.password}
-                    onChange={(e) => handleInputRegistro('password', e.target.value)}
+                    type="text"
+                    value={datosRegistro.pantsSize || ''}
+                    onChange={(e) => handleInputRegistro('pantsSize', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="Create a password"
-                    required
+                    placeholder="e.g. 32, M, 28W"
+                  />
+                </div>
+
+                {/* Shoe Size */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Talla de calzado
+                  </label>
+                  <input
+                    type="text"
+                    value={datosRegistro.shoeSize || ''}
+                    onChange={(e) => handleInputRegistro('shoeSize', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
+                    placeholder="e.g. 9, 38, 7.5"
                   />
                 </div>
 
@@ -675,12 +858,12 @@ export default function App() {
 
   const handleSavePreferences = (preferences) => {
     // Save to localStorage with individual keys (backward compatibility)
-    localStorage.setItem("user_gender", preferences.gender);
+    localStorage.setItem("user_gender", preferences.gender || '');
     localStorage.setItem("user_custom_gender", preferences.customGender || '');
     localStorage.setItem("user_pronouns", preferences.pronouns || '');
-    localStorage.setItem("user_clothing_size", preferences.clothingSize);
-    localStorage.setItem("user_pants_size", preferences.pantsSize);
-    localStorage.setItem("user_shoe_size", preferences.shoeSize);
+    localStorage.setItem("user_clothing_size", preferences.clothingSize || '');
+    localStorage.setItem("user_pants_size", preferences.pantsSize || '');
+    localStorage.setItem("user_shoe_size", preferences.shoeSize || '');
     
     // Also save as a single object with user-specific key for filtering
     if (usuario) {
@@ -692,18 +875,18 @@ export default function App() {
   };
 
   switch (currentPage) {
-   case 'profile':
-  return (
-    <UserProfile 
-      onBack={handleBack}
-      usuario={usuario}
-      setUsuario={setUsuario}
-      setLogueado={setLogueado}
-      setIsRegisteredUser={setIsRegisteredUser}
-      userPreferences={userPreferences}
-      onSavePreferences={handleSavePreferences}
-    />
-  ); 
+    case 'profile':
+      return (
+        <UserProfile 
+          onBack={handleBack}
+          usuario={usuario}
+          setUsuario={setUsuario}
+          setLogueado={setLogueado}
+          setIsRegisteredUser={setIsRegisteredUser}
+          userPreferences={userPreferences}
+          onSavePreferences={handleSavePreferences}
+        />
+      ); 
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
     case 'terms':
@@ -725,4 +908,19 @@ export default function App() {
         />
       );
   }
-}
+}border-transparent"
+                    placeholder="Your full name"
+                    required
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    value={datosRegistro.email}
+                    onChange={(e) => handleInputRegistro('email', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:

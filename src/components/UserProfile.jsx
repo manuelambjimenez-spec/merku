@@ -33,6 +33,12 @@ export function UserProfile({
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    gender: '',
+    customGender: '',
+    pronouns: '',
+    clothingSize: '',
+    pantsSize: '',
+    shoeSize: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
@@ -55,11 +61,23 @@ export function UserProfile({
   useEffect(() => {
     const savedUser = localStorage.getItem("usuario") || '';
     const savedEmail = localStorage.getItem("user_email") || '';
+    const savedGender = localStorage.getItem("user_gender") || '';
+    const savedCustomGender = localStorage.getItem("user_custom_gender") || '';
+    const savedPronouns = localStorage.getItem("user_pronouns") || '';
+    const savedClothingSize = localStorage.getItem("user_clothing_size") || '';
+    const savedPantsSize = localStorage.getItem("user_pants_size") || '';
+    const savedShoeSize = localStorage.getItem("user_shoe_size") || '';
     
     setFormData(prev => ({
       ...prev,
       name: savedUser,
-      email: savedEmail
+      email: savedEmail,
+      gender: savedGender,
+      customGender: savedCustomGender,
+      pronouns: savedPronouns,
+      clothingSize: savedClothingSize,
+      pantsSize: savedPantsSize,
+      shoeSize: savedShoeSize
     }));
   }, [usuario]);
 
@@ -81,6 +99,14 @@ export function UserProfile({
     }));
   };
 
+  const handleGenderChange = (gender) => {
+    handleInputChange('gender', gender);
+    if (gender !== 'custom') {
+      handleInputChange('customGender', '');
+      handleInputChange('pronouns', '');
+    }
+  };
+
   const togglePasswordVisibility = (field) => {
     setShowPasswords(prev => ({
       ...prev,
@@ -88,7 +114,7 @@ export function UserProfile({
     }));
   };
 
-  const handleSaveBasicInfo = () => {
+  const handleSaveProfile = () => {
     if (!formData.name.trim()) {
       setMessage('Name is required');
       setMessageType('error');
@@ -102,9 +128,29 @@ export function UserProfile({
     }
 
     try {
+      // Save all profile data to localStorage
       localStorage.setItem("usuario", formData.name);
       localStorage.setItem("user_email", formData.email);
+      localStorage.setItem("user_gender", formData.gender);
+      localStorage.setItem("user_custom_gender", formData.customGender || '');
+      localStorage.setItem("user_pronouns", formData.pronouns || '');
+      localStorage.setItem("user_clothing_size", formData.clothingSize);
+      localStorage.setItem("user_pants_size", formData.pantsSize);
+      localStorage.setItem("user_shoe_size", formData.shoeSize);
+      
+      // Update usuario state
       setUsuario(formData.name);
+      
+      // Update user preferences for compatibility
+      const newPreferences = {
+        gender: formData.gender,
+        customGender: formData.customGender,
+        pronouns: formData.pronouns,
+        clothingSize: formData.clothingSize,
+        pantsSize: formData.pantsSize,
+        shoeSize: formData.shoeSize
+      };
+      onSavePreferences(newPreferences);
       
       setMessage('Profile updated successfully!');
       setMessageType('success');
@@ -191,14 +237,14 @@ export function UserProfile({
         "usuario",
         "user_email", 
         "user_password",
-        `productosGuardados_${usuario}`,
-        `preferencias_${usuario}`,
         "user_gender",
+        "user_custom_gender", 
+        "user_pronouns",
         "user_clothing_size",
         "user_pants_size",
         "user_shoe_size",
-        "user_custom_gender",
-        "user_pronouns",
+        `productosGuardados_${usuario}`,
+        `preferencias_${usuario}`,
         "last_preference_reminder"
       ];
 
@@ -219,9 +265,27 @@ export function UserProfile({
     }
   };
 
-  const getAccountCreated = () => {
-    // Simple mock - in real app this would come from backend
-    return "January 2025";
+  const resetFormData = () => {
+    const savedUser = localStorage.getItem("usuario") || '';
+    const savedEmail = localStorage.getItem("user_email") || '';
+    const savedGender = localStorage.getItem("user_gender") || '';
+    const savedCustomGender = localStorage.getItem("user_custom_gender") || '';
+    const savedPronouns = localStorage.getItem("user_pronouns") || '';
+    const savedClothingSize = localStorage.getItem("user_clothing_size") || '';
+    const savedPantsSize = localStorage.getItem("user_pants_size") || '';
+    const savedShoeSize = localStorage.getItem("user_shoe_size") || '';
+    
+    setFormData(prev => ({
+      ...prev,
+      name: savedUser,
+      email: savedEmail,
+      gender: savedGender,
+      customGender: savedCustomGender,
+      pronouns: savedPronouns,
+      clothingSize: savedClothingSize,
+      pantsSize: savedPantsSize,
+      shoeSize: savedShoeSize
+    }));
   };
 
   return (
@@ -260,12 +324,12 @@ export function UserProfile({
           </div>
         )}
 
-        {/* Account Information */}
+        {/* Profile Information */}
         <div className="bg-gray-50 rounded-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <User size={20} className="text-gray-600" />
-              <h2 className="text-lg font-semibold">Account Information</h2>
+              <h2 className="text-lg font-semibold">Profile Information</h2>
             </div>
             {!isEditing ? (
               <button
@@ -279,21 +343,14 @@ export function UserProfile({
                 <button
                   onClick={() => {
                     setIsEditing(false);
-                    // Reset form data
-                    const savedUser = localStorage.getItem("usuario") || '';
-                    const savedEmail = localStorage.getItem("user_email") || '';
-                    setFormData(prev => ({
-                      ...prev,
-                      name: savedUser,
-                      email: savedEmail
-                    }));
+                    resetFormData();
                   }}
                   className="text-sm text-gray-600 hover:text-black transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleSaveBasicInfo}
+                  onClick={handleSaveProfile}
                   className="flex items-center gap-1 text-sm bg-[#f7941d] text-white px-3 py-1 rounded-lg hover:bg-black transition-colors font-medium"
                 >
                   <Save size={16} />
@@ -317,45 +374,8 @@ export function UserProfile({
                 className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
                   !isEditing ? 'bg-gray-100 text-gray-600' : ''
                 }`}
-                placeholder="Your full name"
+                placeholder="e.g. 9, 38, 7.5"
               />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                disabled={!isEditing}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
-                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
-                }`}
-                placeholder="your@email.com"
-              />
-            </div>
-
-            {/* User (read-only display) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                User
-              </label>
-              <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
-                {usuario}
-              </div>
-            </div>
-
-            {/* Account Created (read-only) */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Account Created
-              </label>
-              <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-600">
-                {getAccountCreated()}
-              </div>
             </div>
           </div>
         </div>
@@ -523,4 +543,167 @@ export function UserProfile({
       </div>
     </div>
   );
-}
+} ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+                placeholder="Your full name"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+                placeholder="your@email.com"
+              />
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Gender
+              </label>
+              <select
+                value={formData.gender}
+                onChange={(e) => handleGenderChange(e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+              >
+                <option value="">Select gender</option>
+                <option value="woman">Mujer</option>
+                <option value="man">Hombre</option>
+                <option value="prefer-not-to-say">Prefiero no decirlo</option>
+                <option value="custom">Personalizado</option>
+              </select>
+            </div>
+
+            {/* Custom Gender Fields - Only show if "Custom" is selected */}
+            {formData.gender === 'custom' && (
+              <>
+                {/* Custom Gender Text Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ¿Cuál es tu género?
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customGender}
+                    onChange={(e) => handleInputChange('customGender', e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                      !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                    }`}
+                    placeholder="Enter your gender"
+                  />
+                </div>
+
+                {/* Pronouns Radio Buttons */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Prefiero que se me trate como:
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="pronouns"
+                        value="woman"
+                        checked={formData.pronouns === 'woman'}
+                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
+                        disabled={!isEditing}
+                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                      />
+                      <span className="text-sm">Mujer</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="pronouns"
+                        value="man"
+                        checked={formData.pronouns === 'man'}
+                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
+                        disabled={!isEditing}
+                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                      />
+                      <span className="text-sm">Hombre</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="pronouns"
+                        value="other"
+                        checked={formData.pronouns === 'other'}
+                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
+                        disabled={!isEditing}
+                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                      />
+                      <span className="text-sm">Otro</span>
+                    </label>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Clothing Size */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Talla de ropa general
+              </label>
+              <select
+                value={formData.clothingSize}
+                onChange={(e) => handleInputChange('clothingSize', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+              >
+                <option value="">Select size</option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+                <option value="3XL">3XL</option>
+              </select>
+            </div>
+
+            {/* Pants/Skirt Size */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Talla de pantalón/falda
+              </label>
+              <input
+                type="text"
+                value={formData.pantsSize}
+                onChange={(e) => handleInputChange('pantsSize', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+                placeholder="e.g. 32, M, 28W"
+              />
+            </div>
+
+            {/* Shoe Size */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Talla de calzado
+              </label>
+              <input
+                type="text"
+                value={formData.shoeSize}
+                onChange={(e) => handleInputChange('shoeSize', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent
