@@ -692,13 +692,18 @@ export default function App() {
   };
 
   switch (currentPage) {
-    case 'profile':
+   case 'profile':
   return (
     <UserProfile 
       onBack={handleBack}
       usuario={usuario}
+      setUsuario={setUsuario}
+      setLogueado={setLogueado}
+      setIsRegisteredUser={setIsRegisteredUser}
+      userPreferences={userPreferences}
+      onSavePreferences={handleSavePreferences}
     />
-  );
+  ); 
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
     case 'terms':
