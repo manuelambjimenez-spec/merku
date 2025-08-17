@@ -908,7 +908,8 @@ export default function App() {
         />
       );
   }
-}border-transparent"
+}
+"border-transparent"
                     placeholder="Your full name"
                     required
                   />
