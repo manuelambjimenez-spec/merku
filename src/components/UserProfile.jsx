@@ -374,6 +374,169 @@ export function UserProfile({
                 className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
                   !isEditing ? 'bg-gray-100 text-gray-600' : ''
                 }`}
+                placeholder="Your full name"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+                placeholder="your@email.com"
+              />
+            </div>
+
+            {/* Gender */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Gender
+              </label>
+              <select
+                value={formData.gender}
+                onChange={(e) => handleGenderChange(e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+              >
+                <option value="" disabled></option>
+                <option value="woman">Mujer</option>
+                <option value="man">Hombre</option>
+                <option value="prefer-not-to-say">Prefiero no decirlo</option>
+                <option value="custom">Personalizado</option>
+              </select>
+            </div>
+
+            {/* Custom Gender Fields - Only show if "Custom" is selected */}
+            {formData.gender === 'custom' && (
+              <>
+                {/* Custom Gender Text Input */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ¿Cuál es tu género?
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.customGender}
+                    onChange={(e) => handleInputChange('customGender', e.target.value)}
+                    disabled={!isEditing}
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                      !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                    }`}
+                    placeholder="Enter your gender"
+                  />
+                </div>
+
+                {/* Pronouns Radio Buttons */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Prefiero que se me trate como:
+                  </label>
+                  <div className="space-y-2">
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="pronouns"
+                        value="woman"
+                        checked={formData.pronouns === 'woman'}
+                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
+                        disabled={!isEditing}
+                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                      />
+                      <span className="text-sm">Mujer</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="pronouns"
+                        value="man"
+                        checked={formData.pronouns === 'man'}
+                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
+                        disabled={!isEditing}
+                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                      />
+                      <span className="text-sm">Hombre</span>
+                    </label>
+                    <label className="flex items-center">
+                      <input
+                        type="radio"
+                        name="pronouns"
+                        value="other"
+                        checked={formData.pronouns === 'other'}
+                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
+                        disabled={!isEditing}
+                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
+                      />
+                      <span className="text-sm">Otro</span>
+                    </label>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Clothing Size */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Talla de ropa general
+              </label>
+              <select
+                value={formData.clothingSize}
+                onChange={(e) => handleInputChange('clothingSize', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+              >
+                <option value="" disabled></option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+                <option value="3XL">3XL</option>
+              </select>
+            </div>
+
+            {/* Pants/Skirt Size */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Talla de pantalón/falda
+              </label>
+              <input
+                type="text"
+                value={formData.pantsSize}
+                onChange={(e) => handleInputChange('pantsSize', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
+                placeholder="e.g. 32, M, 28W"
+              />
+            </div>
+
+            {/* Shoe Size */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Talla de calzado
+              </label>
+              <input
+                type="text"
+                value={formData.shoeSize}
+                onChange={(e) => handleInputChange('shoeSize', e.target.value)}
+                disabled={!isEditing}
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
+                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
+                }`}
                 placeholder="e.g. 9, 38, 7.5"
               />
             </div>
@@ -543,167 +706,4 @@ export function UserProfile({
       </div>
     </div>
   );
-} ${
-                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
-                }`}
-                placeholder="Your full name"
-              />
-            </div>
-
-            {/* Email */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                disabled={!isEditing}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
-                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
-                }`}
-                placeholder="your@email.com"
-              />
-            </div>
-
-            {/* Gender */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Gender
-              </label>
-              <select
-                value={formData.gender}
-                onChange={(e) => handleGenderChange(e.target.value)}
-                disabled={!isEditing}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
-                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
-                }`}
-              >
-                <option value="">Select gender</option>
-                <option value="woman">Mujer</option>
-                <option value="man">Hombre</option>
-                <option value="prefer-not-to-say">Prefiero no decirlo</option>
-                <option value="custom">Personalizado</option>
-              </select>
-            </div>
-
-            {/* Custom Gender Fields - Only show if "Custom" is selected */}
-            {formData.gender === 'custom' && (
-              <>
-                {/* Custom Gender Text Input */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ¿Cuál es tu género?
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.customGender}
-                    onChange={(e) => handleInputChange('customGender', e.target.value)}
-                    disabled={!isEditing}
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
-                      !isEditing ? 'bg-gray-100 text-gray-600' : ''
-                    }`}
-                    placeholder="Enter your gender"
-                  />
-                </div>
-
-                {/* Pronouns Radio Buttons */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Prefiero que se me trate como:
-                  </label>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="pronouns"
-                        value="woman"
-                        checked={formData.pronouns === 'woman'}
-                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
-                        disabled={!isEditing}
-                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
-                      />
-                      <span className="text-sm">Mujer</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="pronouns"
-                        value="man"
-                        checked={formData.pronouns === 'man'}
-                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
-                        disabled={!isEditing}
-                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
-                      />
-                      <span className="text-sm">Hombre</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="pronouns"
-                        value="other"
-                        checked={formData.pronouns === 'other'}
-                        onChange={(e) => handleInputChange('pronouns', e.target.value)}
-                        disabled={!isEditing}
-                        className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
-                      />
-                      <span className="text-sm">Otro</span>
-                    </label>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Clothing Size */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Talla de ropa general
-              </label>
-              <select
-                value={formData.clothingSize}
-                onChange={(e) => handleInputChange('clothingSize', e.target.value)}
-                disabled={!isEditing}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
-                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
-                }`}
-              >
-                <option value="">Select size</option>
-                <option value="XS">XS</option>
-                <option value="S">S</option>
-                <option value="M">M</option>
-                <option value="L">L</option>
-                <option value="XL">XL</option>
-                <option value="XXL">XXL</option>
-                <option value="3XL">3XL</option>
-              </select>
-            </div>
-
-            {/* Pants/Skirt Size */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Talla de pantalón/falda
-              </label>
-              <input
-                type="text"
-                value={formData.pantsSize}
-                onChange={(e) => handleInputChange('pantsSize', e.target.value)}
-                disabled={!isEditing}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
-                  !isEditing ? 'bg-gray-100 text-gray-600' : ''
-                }`}
-                placeholder="e.g. 32, M, 28W"
-              />
-            </div>
-
-            {/* Shoe Size */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Talla de calzado
-              </label>
-              <input
-                type="text"
-                value={formData.shoeSize}
-                onChange={(e) => handleInputChange('shoeSize', e.target.value)}
-                disabled={!isEditing}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent
+}

@@ -676,7 +676,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
                   >
-                    <option value="">Select gender</option>
+                    <option value="" disabled></option>
                     <option value="woman">Mujer</option>
                     <option value="man">Hombre</option>
                     <option value="prefer-not-to-say">Prefiero no decirlo</option>
