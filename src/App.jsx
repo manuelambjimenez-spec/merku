@@ -74,7 +74,7 @@ function Footer({ onNavigate }) {
   );
 }
 
-// Main shopping component - RESTAURADA CON TODA LA FUNCIONALIDAD
+// Main shopping component
 function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, userPreferences, setUserPreferences, isRegisteredUser, setIsRegisteredUser }) {
   const [menuAbierto, setMenuAbierto] = useState(true);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -367,14 +367,14 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <PenLine size={16} /> New chat
               </button>
               {historial.map((item, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleBuscar(item)}
-                  className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-tight"
-                >
-                  {item}
-                </button>
-              ))}
+  <button
+    key={idx}
+    onClick={() => handleBuscar(item)}
+    className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none py-1"
+  >
+    {item}
+  </button>
+))}
               <button
                 onClick={handleMostrarGuardados}
                 className={`text-left text-xs flex items-center gap-2 ${
@@ -693,18 +693,19 @@ export default function App() {
 
   switch (currentPage) {
     case 'profile':
-      return (
-        <UserProfile 
-          onBack={handleBack}
-          onNavigate={handleNavigate}
-          usuario={usuario}
-          setUsuario={setUsuario}
-          setLogueado={setLogueado}
-          setIsRegisteredUser={setIsRegisteredUser}
-          userPreferences={userPreferences}
-          onSavePreferences={handleSavePreferences}
-        />
-      );
+  return (
+    <UserProfile 
+      onBack={handleBack}
+      onNavigate={handleNavigate}
+      usuario={usuario}
+      setUsuario={setUsuario}
+      setLogueado={setLogueado}
+      setIsRegisteredUser={setIsRegisteredUser}
+      userPreferences={userPreferences}
+      onSavePreferences={handleSavePreferences}
+      setShowPreferencePanel={setShowPreferencePanel}
+    />
+  );
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
     case 'terms':
