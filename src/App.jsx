@@ -384,11 +384,11 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <Heart size={16} /> Saved
               </button>
               <button 
-                onClick={() => console.log('Preferences clicked')}
-                className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
-              >
-                <Settings size={16} /> Preferences
-              </button>
+  onClick={() => setShowPreferencePanel(true)}
+  className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
+>
+  <Settings size={16} /> Preferences
+</button>
               <button 
                 onClick={() => onNavigate('profile')}
                 className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
