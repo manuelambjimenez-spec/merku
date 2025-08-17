@@ -367,14 +367,14 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <PenLine size={16} /> New chat
               </button>
               {historial.map((item, idx) => (
-  <button
-    key={idx}
-    onClick={() => handleBuscar(item)}
-    className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none py-1"
-  >
+	<button
+		key={idx}
+		onClick={() => handleBuscar(item)}
+		className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
+	>
     {item}
-  </button>
-))}
+	</button>
+	))}
               <button
                 onClick={handleMostrarGuardados}
                 className={`text-left text-xs flex items-center gap-2 ${
@@ -384,7 +384,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <Heart size={16} /> Saved
               </button>
               <button 
-                onClick={() => setShowPreferencePanel(true)}
+                onClick={() => console.log('Preferences clicked')}
                 className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
               >
                 <Settings size={16} /> Preferences
