@@ -1,229 +1,651 @@
-import { useState, useEffect } from 'react';
-import { Shopping } from './components/Shopping';
-import { UserProfile } from './components/UserProfile';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import TermsOfUse from './components/TermsOfUse';
-import CookiesPolicy from './components/CookiesPolicy';
-import './App.css';
+import { useState, useEffect, useRef } from "react";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  PenLine,
+  Settings,
+  User,
+  LogOut,
+  ChevronDown,
+  Heart,
+  Share2,
+  Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Check,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  ArrowUp 
+} from "lucide-react";
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('shopping');
-  const [usuario, setUsuario] = useState('');
-  const [logueado, setLogueado] = useState(false);
-  const [isRegisteredUser, setIsRegisteredUser] = useState(false);
-  const [userPreferences, setUserPreferences] = useState({
-    gender: '',
-    customGender: '',
-    pronouns: '',
-    clothingSize: '',
-    pantsSize: '',
-    shoeSize: ''
-  });
-  const [modoRegistro, setModoRegistro] = useState(false);
+// Import separated components
+import { PreferencePanel, PreferenceReminder } from "./components/PreferenceComponents";
+import { UserProfile } from "./components/UserProfile";
+import { PrivacyPolicy, TermsOfUse, CookiesPolicy } from "./components/LegalPages";
+import ProductCard from "./ProductCard";
+
+// Logo component
+const MerkuLogo = ({ className }) => (
+  <img 
+    src="/merku-logo-mini.png" 
+    alt="Merku Logo" 
+    className={className}
+  />
+);
+
+const products = [
+  { id: 1, name: "Wireless Headphones", price: "$89.99", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" },
+  { id: 2, name: "Summer Dress", price: "$45.00", category: "fashion", store: "Zara", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200&h=200&fit=crop" },
+  { id: 3, name: "Running Shoes", price: "$120.00", category: "fashion", store: "Nike", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop" },
+  { id: 4, name: "Gaming Mouse", price: "$65.99", category: "tech", store: "Best Buy", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop" },
+  { id: 5, name: "Smart Watch", price: "$299.99", category: "tech", store: "Apple", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop" },
+  { id: 6, name: "Casual Sneakers", price: "$75.00", category: "fashion", store: "Adidas", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=200&fit=crop" },
+  { id: 7, name: "Bluetooth Speaker", price: "$55.99", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200&h=200&fit=crop" },
+  { id: 8, name: "Winter Jacket", price: "$89.99", category: "fashion", store: "H&M", image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&h=200&fit=crop" },
+  { id: 9, name: "Laptop Stand", price: "$35.00", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop" },
+  { id: 10, name: "Designer Jeans", price: "$99.99", category: "fashion", store: "Levi's", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=200&fit=crop" }
+];
+
+// Footer component
+function Footer({ onNavigate }) {
+  return (
+    <footer className="mt-16 pb-6 text-center">
+      <div className="flex justify-center items-center gap-6 text-xs text-[#c2bfbf]">
+        <button 
+          onClick={() => onNavigate('privacy')}
+          className="hover:text-black transition-colors"
+        >
+          Privacy Policy
+        </button>
+        <button 
+          onClick={() => onNavigate('terms')}
+          className="hover:text-black transition-colors"
+        >
+          Terms of Use
+        </button>
+        <button 
+          onClick={() => onNavigate('cookies')}
+          className="hover:text-black transition-colors"
+        >
+          Cookies Policy
+        </button>
+      </div>
+    </footer>
+  );
+}
+
+// Main shopping component
+function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, userPreferences, setUserPreferences, isRegisteredUser, setIsRegisteredUser }) {
+  const [menuAbierto, setMenuAbierto] = useState(true);
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  const [productosGuardados, setProductosGuardados] = useState([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("All");
+  const [mostrarGuardados, setMostrarGuardados] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [mensajeIA, setMensajeIA] = useState("");
+  const [buscando, setBuscando] = useState(false);
+  const [ocultarInstrucciones, setOcultarInstrucciones] = useState(false);
+  const [historial, setHistorial] = useState([]);
+  const [recomendaciones, setRecomendaciones] = useState([]);
+  const [haBuscado, setHaBuscado] = useState(false);
+  const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  
+  
+  // Updated datosRegistro state with all new fields
   const [datosRegistro, setDatosRegistro] = useState({
-    nombre: '',
-    email: '',
-    password: ''
+    nombre: "",
+    email: "",
+    password: "",
+    gender: "",
+    customGender: "",
+    pronouns: "",
+    clothingSize: "",
+    pantsSize: "",
+    shoeSize: ""
   });
-
+  
   // New states for preferences
-  const [showPreferencePanel, setShowPreferencePanel] = useState(false);
-  const [showPreferenceReminder, setShowPreferenceReminder] = useState(false);
 
-  // Load user data from localStorage on component mount
+  const [showPreferenceReminder, setShowPreferenceReminder] = useState(false);
+  const [showPreferencePanel, setShowPreferencePanel] = useState(false);
+
+  // Load user data and preferences on component mount
   useEffect(() => {
-    const savedUser = localStorage.getItem('usuario');
-    const savedPassword = localStorage.getItem('user_password');
-    const savedEmail = localStorage.getItem('user_email');
+    const savedUser = localStorage.getItem("usuario");
+    const savedEmail = localStorage.getItem("user_email");
+    const savedPassword = localStorage.getItem("user_password");
     
-    if (savedUser && savedPassword) {
+    if (savedUser) {
       setUsuario(savedUser);
       setLogueado(true);
-      setIsRegisteredUser(true);
       
+      // Check if user is registered (has email and password)
+      if (savedEmail && savedPassword) {
+        setIsRegisteredUser(true);
+      }
+      
+      // Load saved products
+      const guardados = localStorage.getItem(`productosGuardados_${savedUser}`);
+      if (guardados) {
+        setProductosGuardados(JSON.parse(guardados));
+      }
+
       // Load user preferences
+      let savedPreferences = null;
       try {
-        const prefs = localStorage.getItem(`preferencias_${savedUser}`);
-        if (prefs) {
-          setUserPreferences(JSON.parse(prefs));
+        const userSpecificPrefs = localStorage.getItem(`preferencias_${savedUser}`);
+        if (userSpecificPrefs) {
+          savedPreferences = JSON.parse(userSpecificPrefs);
         }
       } catch (error) {
-        console.error('Error loading preferences:', error);
+        console.log("Error loading user-specific preferences:", error);
       }
-    }
 
-    // Check if we should show preference reminder
-    const lastReminder = localStorage.getItem('last_preference_reminder');
-    const shouldShowReminder = !lastReminder || 
-      (Date.now() - parseInt(lastReminder)) > 7 * 24 * 60 * 60 * 1000; // 7 days
-    
-    if (savedUser && shouldShowReminder) {
-      const hasPreferences = Object.values(userPreferences).some(val => val && val !== '');
-      if (!hasPreferences) {
-        setShowPreferenceReminder(true);
+      if (!savedPreferences) {
+        savedPreferences = {
+          gender: localStorage.getItem("user_gender") || '',
+          customGender: localStorage.getItem("user_custom_gender") || '',
+          pronouns: localStorage.getItem("user_pronouns") || '',
+          clothingSize: localStorage.getItem("user_clothing_size") || '',
+          pantsSize: localStorage.getItem("user_pants_size") || '',
+          shoeSize: localStorage.getItem("user_shoe_size") || ''
+        };
       }
+
+      setUserPreferences(savedPreferences);
     }
   }, []);
 
-  const handleNavigate = (page) => {
-    setCurrentPage(page);
-  };
+  // Check for preference reminder
+  useEffect(() => {
+    if (!isRegisteredUser || !usuario) return;
 
-  const handleBack = () => {
-    setCurrentPage('shopping');
-  };
+    const hasPreferences = Object.values(userPreferences).some(value => value !== '');
+    if (hasPreferences) return;
 
-  const handleInputRegistro = (field, value) => {
-    setDatosRegistro(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleRegistroLogin = (e) => {
-    e.preventDefault();
+    const lastReminderDate = localStorage.getItem("last_preference_reminder");
+    const today = new Date().toDateString();
     
-    if (modoRegistro) {
-      // Register logic
-      if (!datosRegistro.nombre || !datosRegistro.email || !datosRegistro.password) {
-        alert('Please fill all fields');
-        return;
-      }
-      
-      if (datosRegistro.password.length < 6) {
-        alert('Password must be at least 6 characters');
-        return;
-      }
-
-      localStorage.setItem('usuario', datosRegistro.nombre);
-      localStorage.setItem('user_email', datosRegistro.email);
-      localStorage.setItem('user_password', datosRegistro.password);
-      
-      setUsuario(datosRegistro.nombre);
-      setLogueado(true);
-      setIsRegisteredUser(true);
-      setShowPreferencePanel(true);
-      
-      // Reset form
-      setDatosRegistro({
-        nombre: '',
-        email: '',
-        password: ''
-      });
-      
+    if (!lastReminderDate) {
+      const timer = setTimeout(() => {
+        setShowPreferenceReminder(true);
+      }, 2000);
+      return () => clearTimeout(timer);
     } else {
-      // Login logic
-      const savedPassword = localStorage.getItem('user_password');
-      const savedUser = localStorage.getItem('usuario');
+      const lastDate = new Date(lastReminderDate);
+      const todayDate = new Date(today);
+      const diffTime = Math.abs(todayDate - lastDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      if (datosRegistro.email === localStorage.getItem('user_email') && 
-          datosRegistro.password === savedPassword) {
-        setUsuario(savedUser || datosRegistro.email);
-        setLogueado(true);
-        setIsRegisteredUser(true);
-        
-        // Reset form
-        setDatosRegistro({
-          nombre: '',
-          email: '',
-          password: ''
-        });
-      } else {
-        alert('Invalid email or password');
+      if (diffDays >= 3) {
+        const timer = setTimeout(() => {
+          setShowPreferenceReminder(true);
+        }, 2000);
+        return () => clearTimeout(timer);
       }
+    }
+  }, [isRegisteredUser, usuario, userPreferences]);
+
+  useEffect(() => {
+    if (usuario) {
+      localStorage.setItem(`productosGuardados_${usuario}`, JSON.stringify(productosGuardados));
+    }
+  }, [productosGuardados, usuario]);
+
+  // Efecto para cerrar modal con tecla Esc
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        if (productoSeleccionado) {
+          setProductoSeleccionado(null);
+        }
+        if (mostrarRegistro) {
+          setMostrarRegistro(false);
+        }
+        if (showPreferencePanel) {
+          setShowPreferencePanel(false);
+        }
+        if (showPreferenceReminder) {
+          setShowPreferenceReminder(false);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [productoSeleccionado, mostrarRegistro, showPreferencePanel, showPreferenceReminder]);
+
+  const handleLogin = () => {
+    const nombre = prompt("Enter your name");
+    if (nombre) {
+      setUsuario(nombre);
+      localStorage.setItem("usuario", nombre);
+      setLogueado(true);
     }
   };
 
+  const handleLogout = () => {
+    setLogueado(false);
+    setIsRegisteredUser(false);
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_password");
+    setUsuario("");
+    setProductosGuardados([]);
+  };
+
+  // Updated handleRegistro function
+  const handleRegistro = (e) => {
+    e.preventDefault();
+    if (datosRegistro.nombre && datosRegistro.email && datosRegistro.password) {
+      // Save all user data to localStorage
+      localStorage.setItem("usuario", datosRegistro.nombre);
+      localStorage.setItem("user_email", datosRegistro.email);
+      localStorage.setItem("user_password", datosRegistro.password);
+      localStorage.setItem("user_gender", datosRegistro.gender || '');
+      localStorage.setItem("user_custom_gender", datosRegistro.customGender || '');
+      localStorage.setItem("user_pronouns", datosRegistro.pronouns || '');
+      localStorage.setItem("user_clothing_size", datosRegistro.clothingSize || '');
+      localStorage.setItem("user_pants_size", datosRegistro.pantsSize || '');
+      localStorage.setItem("user_shoe_size", datosRegistro.shoeSize || '');
+      
+      // Update states
+      setUsuario(datosRegistro.nombre);
+      setIsRegisteredUser(true);
+      setLogueado(true);
+      
+      // Update user preferences
+      const newPreferences = {
+        gender: datosRegistro.gender,
+        customGender: datosRegistro.customGender,
+        pronouns: datosRegistro.pronouns,
+        clothingSize: datosRegistro.clothingSize,
+        pantsSize: datosRegistro.pantsSize,
+        shoeSize: datosRegistro.shoeSize
+      };
+      setUserPreferences(newPreferences);
+      
+      // Close modal and reset form
+      setMostrarRegistro(false);
+      setDatosRegistro({
+        nombre: "",
+        email: "",
+        password: "",
+        gender: "",
+        customGender: "",
+        pronouns: "",
+        clothingSize: "",
+        pantsSize: "",
+        shoeSize: ""
+      });
+    }
+  };
+
+  const handleInputRegistro = (campo, valor) => {
+    setDatosRegistro(prev => ({
+      ...prev,
+      [campo]: valor
+    }));
+  };
+
+  // Updated handleSavePreferences function
   const handleSavePreferences = (preferences) => {
+    localStorage.setItem("user_gender", preferences.gender || '');
+    localStorage.setItem("user_custom_gender", preferences.customGender || '');
+    localStorage.setItem("user_pronouns", preferences.pronouns || '');
+    localStorage.setItem("user_clothing_size", preferences.clothingSize || '');
+    localStorage.setItem("user_pants_size", preferences.pantsSize || '');
+    localStorage.setItem("user_shoe_size", preferences.shoeSize || '');
+    
+    if (usuario) {
+      localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
+    }
+    
     setUserPreferences(preferences);
-    localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
-    localStorage.setItem('last_preference_reminder', Date.now().toString());
-    setShowPreferenceReminder(false);
   };
 
-  const handleClosePreferenceReminder = () => {
-    setShowPreferenceReminder(false);
-    localStorage.setItem('last_preference_reminder', Date.now().toString());
+  // Helper function to determine target gender for results
+  const getTargetGender = (userPreferences) => {
+    const { gender, customGender, pronouns } = userPreferences;
+    
+    if (gender === 'man') return 'man';
+    if (gender === 'woman') return 'woman';
+    if (gender === 'prefer-not-to-say') return 'both';
+    if (gender === 'custom') {
+      if (pronouns === 'man') return 'man';
+      if (pronouns === 'woman') return 'woman';
+      return 'both'; // For 'other' or no pronouns specified
+    }
+    
+    return 'both'; // Default fallback
   };
 
-  // Render login/register form if not logged in
-  if (!logueado) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="flex justify-center">
-            <img 
-              src="/merku-logo-mini.png" 
-              alt="Merku Logo" 
-              className="w-16 h-16"
-            />
-          </div>
-          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-            {modoRegistro ? 'Create your account' : 'Welcome back'}
-          </h2>
+  const handlePreferenceReminderClose = () => {
+    setShowPreferenceReminder(false);
+    localStorage.setItem("last_preference_reminder", new Date().toDateString());
+  };
+
+  const handlePreferenceReminderAccept = () => {
+    setShowPreferenceReminder(false);
+    setShowPreferencePanel(true);
+    localStorage.setItem("last_preference_reminder", new Date().toDateString());
+  };
+
+  const handleGuardar = (producto) => {
+    if (!productosGuardados.some((p) => p.id === producto.id)) {
+      setProductosGuardados([...productosGuardados, producto]);
+    }
+  };
+
+  const cerrarDetalle = () => setProductoSeleccionado(null);
+
+  const handleMostrarGuardados = () => {
+    setMostrarGuardados((prev) => !prev);
+    setCategoriaSeleccionada("All");
+  };
+
+  // FUNCIONALIDAD DE BÚSQUEDA RESTAURADA
+  const handleBuscar = (termino = busqueda) => {
+    if (!termino.trim()) return;
+    setBuscando(true);
+    setMensajeIA(`Searching for: "${termino}"...`);
+    setBusqueda(termino);
+    setOcultarInstrucciones(true);
+    setHaBuscado(true);
+
+    setHistorial((prev) => {
+      const newHist = [termino, ...prev.filter((item) => item !== termino)];
+      return newHist.slice(0, 5);
+    });
+
+    setTimeout(() => {
+      const b = termino.toLowerCase();
+      if (b.includes("headphones")) {
+        setMensajeIA("Great choice! These headphones might be what you're looking for.");
+        setRecomendaciones(products.filter((p) => p.category === "tech" && !p.name.toLowerCase().includes("headphones")));
+      } else if (b.includes("dress")) {
+        setMensajeIA("Light and fresh — here are some dresses perfect for summer.");
+        setRecomendaciones(products.filter((p) => p.category === "fashion" && !p.name.toLowerCase().includes("dress")));
+      } else if (b.includes("shoes") || b.includes("sneakers")) {
+        setMensajeIA("Let's find you the perfect pair of shoes.");
+        setRecomendaciones(products.filter((p) => p.category === "fashion" && !p.name.toLowerCase().includes("shoes") && !p.name.toLowerCase().includes("sneakers")));
+      } else if (b.includes("watch")) {
+        setMensajeIA("Here are some stylish watches you might love.");
+        setRecomendaciones(products.filter((p) => p.category === "tech" && !p.name.toLowerCase().includes("watch")));
+      } else {
+        setMensajeIA(`These results match your search: "${termino}"`);
+        setRecomendaciones([]);
+      }
+      setBuscando(false);
+    }, 1500);
+  };
+
+  const handleInputChange = (e) => {
+    setBusqueda(e.target.value);
+    if (!ocultarInstrucciones) setOcultarInstrucciones(true);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleBuscar();
+    }
+  };
+
+  // FILTRADO DE PRODUCTOS RESTAURADO
+  const categorias = ["All", ...new Set(products.map((p) => p.category))];
+  const fuenteProductos = mostrarGuardados ? productosGuardados : products;
+  const productosFiltrados = haBuscado
+    ? fuenteProductos
+        .filter((p) =>
+          categoriaSeleccionada === "All" ? true : p.category === categoriaSeleccionada
+        )
+        .filter((p) =>
+          (p.name ?? "").toLowerCase().includes(busqueda.toLowerCase()) ||
+          (p.category ?? "").toLowerCase().includes(busqueda.toLowerCase()) ||
+          (p.store ?? "").toLowerCase().includes(busqueda.toLowerCase())
+        )
+    : [];
+
+  return (
+    <div className="min-h-screen bg-white flex">
+      {/* Sidebar */}
+      {logueado && (
+        <aside 
+          className={`${menuAbierto ? "w-56" : "w-12"} transition-all duration-300 bg-[#f3f4f6] p-4 flex flex-col h-screen fixed left-0 top-0 z-40`}
+        >
+          <button className="self-end mb-2" onClick={() => setMenuAbierto(!menuAbierto)}>
+            {menuAbierto ? <ChevronsLeft size={16} /> : <ChevronsRight size={16} />}
+          </button>
+          {menuAbierto ? (
+            <MerkuLogo className="w-12 self-start" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-[#f7941d] self-center" />
+          )}
+          {menuAbierto && (
+            <div className="flex flex-col gap-4 flex-1 mt-6">
+              <button className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold">
+                <PenLine size={16} /> New chat
+              </button>
+              {historial.map((item, idx) => (
+        <button
+          key={idx}
+          onClick={() => handleBuscar(item)}
+          className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
+        >
+          {item}
+        </button>
+      ))}
+              <button
+                onClick={handleMostrarGuardados}
+                className={`text-left text-xs flex items-center gap-2 ${
+                  mostrarGuardados ? "text-[#f7941d] font-semibold" : "text-black"
+                } hover:font-semibold`}
+              >
+                <Heart size={16} /> Saved
+              </button>
+              <button 
+                onClick={() => setShowPreferencePanel(true)}
+                className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
+              >
+                <Settings size={16} /> Preferences
+              </button>
+              <button 
+                onClick={() => onNavigate('profile')}
+                className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
+              >
+                <User size={16} /> Profile
+              </button>
+              <div className="mt-auto">
+                <button
+                  onClick={handleLogout}
+                  className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
+                >
+                  <LogOut size={16} /> Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </aside>
+      )}
+
+      <main className={`flex-1 flex flex-col items-center px-4 py-6 sm:py-10 min-h-screen ${logueado ? (menuAbierto ? "ml-56" : "ml-12") : ""} transition-all duration-300`}>
+        {/* Botones de Login/Register cuando no está logueado */}
+        <div className={`absolute top-4 right-4 space-x-2 ${logueado ? "z-30" : ""}`}>
+          {!logueado && (
+            <>
+              <button onClick={handleLogin} className="text-sm text-black hover:underline">Login</button>
+              <button onClick={() => setMostrarRegistro(true)} className="text-sm text-black hover:underline">Register</button>
+            </>
+          )}
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            {showPreferenceReminder && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-blue-800">
-                      Complete your preferences
-                    </h3>
-                    <div className="mt-2 text-sm text-blue-700">
-                      <p>
-                        For a better shopping experience, please set your size preferences in your profile.
-                      </p>
-                    </div>
-                    <div className="mt-4">
-                      <button
-                        type="button"
-                        onClick={() => setShowPreferencePanel(true)}
-                        className="text-sm bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                      >
-                        Set Preferences
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleClosePreferenceReminder}
-                        className="ml-2 text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        Maybe later
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+        {/* INTERFAZ PRINCIPAL RESTAURADA */}
+        <MerkuLogo className="w-20 sm:w-24 mt-6 sm:mt-10 mb-4" />
+        <h1 className="text-2xl font-bold text-center">Hi, I'm Merku</h1>
+        
+        {/* INSTRUCCIONES RESTAURADAS */}
+        {!ocultarInstrucciones && (
+          <div className="text-center text-xs text-[#c2bfbf] mt-8 max-w-md">
+            <p className="mb-2">
+              <span className="text-[#f7941d] font-semibold">Merku</span> is your intelligent IA based shopping assistant, helping you find the right product instantly based on your needs.
+            </p>
+            <p className="mt-4 font-semibold text-[#f7941d]">How it works:</p>
+            <ol className="list-decimal list-inside text-[#c2bfbf]">
+              <li>
+                <span className="text-[#f7941d]">1.</span> Type what you're looking for (e.g. wireless earbuds under $100, office chair with lumbar support)
+              </li>
+              <li>
+                <span className="text-[#f7941d]">2.</span> <span className="text-[#f7941d]">Merku</span> filters and shows smart results in your favourite sites
+              </li>
+              <li>
+                <span className="text-[#f7941d]">3.</span> You choose what fits you best — simple!
+              </li>
+            </ol>
+          </div>
+        )}
 
-            <form onSubmit={handleRegistroLogin}>
-              <div className="space-y-4">
-                {modoRegistro && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={datosRegistro.nombre}
-                      onChange={(e) => handleInputRegistro('nombre', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                      placeholder="Your full name"
-                      required
-                    />
-                  </div>
-                )}
+        {/* BARRA DE BÚSQUEDA RESTAURADA */}
+        <div className="bg-[#f3f4f6] rounded-xl px-4 py-2 flex items-center w-full max-w-xl mb-4 mt-6">
+          <input
+            type="text"
+            placeholder="e.g. running shoes size 38"
+            value={busqueda}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            className="flex-1 bg-transparent border-none focus:outline-none placeholder-[#d3d4d7]"
+          />
+          <button
+            onClick={() => handleBuscar()}
+            className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
+          >
+            <ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
+          </button>
+        </div>
+
+        {/* CATEGORÍAS RESTAURADAS */}
+        <div className="flex flex-wrap justify-center gap-2 mb-6">
+          {categorias.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setCategoriaSeleccionada(cat)}
+              className={`text-xs px-3 py-1 rounded-full border ${
+                categoriaSeleccionada === cat
+                  ? "bg-[#f7941d] text-white border-[#f7941d]"
+                  : "text-[#c2bfbf] border-[#c2bfbf] hover:border-black hover:text-black"
+              } transition`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* MENSAJE IA RESTAURADO */}
+        <p className="text-sm text-center text-[#c2bfbf] mb-4 min-h-[1.5rem]">
+          {buscando ? <span className="animate-pulse">Searching...</span> : mensajeIA}
+        </p>
+
+        {/* GRID DE PRODUCTOS RESTAURADO */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+          {productosFiltrados.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              onClick={() => setProductoSeleccionado(product)}
+            />
+          ))}
+        </div>
+
+        {/* RECOMENDACIONES RESTAURADAS */}
+        {recomendaciones.length > 0 && (
+          <div className="w-full max-w-6xl mt-4">
+            <h2 className="text-sm font-semibold mb-2 text-gray-600 px-1">
+              También te puede interesar:
+            </h2>
+            <div className="flex gap-4 overflow-x-auto pb-4 px-1">
+              {recomendaciones.map((product) => (
+                <div key={product.id} className="min-w-[160px] max-w-[180px]">
+                  <ProductCard
+                    product={product}
+                    onClick={() => setProductoSeleccionado(product)}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* MODAL DE PRODUCTO RESTAURADO */}
+        {productoSeleccionado && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-11/12 max-w-md relative">
+              <button
+                className="absolute top-2 right-2 text-black hover:text-gray-600 text-xl font-bold"
+                onClick={cerrarDetalle}
+              >
+                ×
+              </button>
+              <img
+                src={productoSeleccionado.image}
+                alt={productoSeleccionado.name}
+                className="w-full h-48 object-cover rounded mb-4"
+              />
+              <h2 className="text-lg font-semibold mb-1">
+                {productoSeleccionado.name}
+              </h2>
+              <p className="text-sm text-gray-500 mb-2">
+                {productoSeleccionado.store}
+              </p>
+              <p className="text-black font-semibold mb-2">
+                {productoSeleccionado.price}
+              </p>
+              <div className="flex gap-4">
+                <button onClick={() => handleGuardar(productoSeleccionado)}>
+                  <Bookmark className="text-[#f7941d] w-5 h-5 hover:text-black" />
+                </button>
+                <button>
+                  <Share2 className="text-[#f7941d] w-5 h-5 hover:text-black" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+       {/* Registration Modal */}
+        {mostrarRegistro && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-11/12 max-w-md relative">
+              <button
+                className="absolute top-2 right-2 text-black hover:text-gray-600"
+                onClick={() => setMostrarRegistro(false)}
+              >
+                <X size={20} />
+              </button>
+              
+              <div className="flex items-center justify-center mb-6">
+                <MerkuLogo className="w-12 mr-2" />
+                <h2 className="text-xl font-bold">Create Account</h2>
+              </div>
+
+              <form onSubmit={handleRegistro} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Name
+                  </label>
+                  <input
+                    type="text"
+                    value={datosRegistro.nombre}
+                    onChange={(e) => handleInputRegistro('nombre', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
+                    placeholder="Your full name"
+                    required
+                  />
+                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
+                    Email
                   </label>
                   <input
                     type="email"
@@ -237,192 +659,114 @@ function App() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password *
+                    Password
                   </label>
                   <input
                     type="password"
                     value={datosRegistro.password}
                     onChange={(e) => handleInputRegistro('password', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="Your password"
+                    placeholder="Create a password"
                     required
                   />
-                  {modoRegistro && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Password must be at least 6 characters long
-                    </p>
-                  )}
                 </div>
-              </div>
 
-              <div className="flex gap-4 mt-6">
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#f7941d] text-white py-3 px-4 rounded-lg hover:bg-black transition-colors font-medium"
-                >
-                  {modoRegistro ? 'Create Account' : 'Login'}
-                </button>
-              </div>
-
-              <p className="text-center text-sm text-gray-600 mt-4">
-                {modoRegistro ? 'Already have an account?' : "Don't have an account?"}
-                <button
-                  type="button"
-                  onClick={() => setModoRegistro(!modoRegistro)}
-                  className="ml-2 text-[#f7941d] hover:text-black font-medium"
-                >
-                  {modoRegistro ? 'Login' : 'Sign up'}
-                </button>
-              </p>
-            </form>
-
-            <div className="mt-6 border-t border-gray-200 pt-6">
-              <div className="text-center">
-                <p className="text-xs text-gray-500">
-                  By continuing, you agree to our{' '}
+                <div className="flex gap-3 mt-6">
                   <button
-                    onClick={() => handleNavigate('terms')}
-                    className="text-[#f7941d] hover:text-black"
+                    type="button"
+                    onClick={() => setMostrarRegistro(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    Terms of Service
+                    Cancel
                   </button>
-                  ,{' '}
                   <button
-                    onClick={() => handleNavigate('privacy')}
-                    className="text-[#f7941d] hover:text-black"
+                    type="submit"
+                    className="flex-1 px-4 py-2 bg-[#f7941d] text-white rounded-lg hover:bg-black transition-colors font-medium"
                   >
-                    Privacy Policy
+                    Create Account
                   </button>
-                  {' '}and{' '}
-                  <button
-                    onClick={() => handleNavigate('cookies')}
-                    className="text-[#f7941d] hover:text-black"
-                  >
-                    Cookie Policy
-                  </button>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {showPreferencePanel && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-            <div className="relative bg-white rounded-lg max-w-md mx-auto p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Set Your Preferences
-              </h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Gender
-                  </label>
-                  <select
-                    value={userPreferences.gender}
-                    onChange={(e) => setUserPreferences(prev => ({ ...prev, gender: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                  >
-                    <option value="">Select gender</option>
-                    <option value="Mujer">Mujer</option>
-                    <option value="Hombre">Hombre</option>
-                    <option value="Prefiero no decirlo">Prefiero no decirlo</option>
-                    <option value="Personalizado">Personalizado</option>
-                  </select>
                 </div>
-
-                {userPreferences.gender === 'Personalizado' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Custom Gender
-                    </label>
-                    <input
-                      type="text"
-                      value={userPreferences.customGender}
-                      onChange={(e) => setUserPreferences(prev => ({ ...prev, customGender: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                      placeholder="Describe your gender"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Clothing Size
-                  </label>
-                  <input
-                    type="text"
-                    value={userPreferences.clothingSize}
-                    onChange={(e) => setUserPreferences(prev => ({ ...prev, clothingSize: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="XS, S, M, L, XL, etc."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pants Size
-                  </label>
-                  <input
-                    type="text"
-                    value={userPreferences.pantsSize}
-                    onChange={(e) => setUserPreferences(prev => ({ ...prev, pantsSize: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="28, 30, 32, 34, etc."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Shoe Size
-                  </label>
-                  <input
-                    type="text"
-                    value={userPreferences.shoeSize}
-                    onChange={(e) => setUserPreferences(prev => ({ ...prev, shoeSize: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="35, 36, 37, 38, etc."
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <button
-                  onClick={() => setShowPreferencePanel(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Skip
-                </button>
-                <button
-                  onClick={() => {
-                    handleSavePreferences(userPreferences);
-                    setShowPreferencePanel(false);
-                  }}
-                  className="flex-1 bg-[#f7941d] text-white px-4 py-2 rounded-lg hover:bg-black transition-colors font-medium"
-                >
-                  Save Preferences
-                </button>
-              </div>
+              </form>
             </div>
           </div>
         )}
-      </div>
-    );
-  }
+
+        {/* Preference Panel */}
+        <PreferencePanel
+          isOpen={showPreferencePanel}
+          onClose={() => setShowPreferencePanel(false)}
+          userPreferences={userPreferences}
+          onSavePreferences={handleSavePreferences}
+        />
+
+        {/* Preference Reminder */}
+        <PreferenceReminder
+          isOpen={showPreferenceReminder}
+          onClose={handlePreferenceReminderClose}
+          onOpenPreferences={handlePreferenceReminderAccept}
+        />
+
+        <Footer onNavigate={onNavigate} />
+      </main>
+    </div>
+  );
+}
+
+// Main App component
+export default function App() {
+  const [currentPage, setCurrentPage] = useState('home');
+  const [usuario, setUsuario] = useState("");
+  const [logueado, setLogueado] = useState(false);
+  const [userPreferences, setUserPreferences] = useState({
+    gender: '',
+    customGender: '',
+    pronouns: '',
+    clothingSize: '',
+    pantsSize: '',
+    shoeSize: ''
+  });
+  const [isRegisteredUser, setIsRegisteredUser] = useState(false);
+
+  const handleNavigate = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleBack = () => {
+    setCurrentPage('home');
+  };
+
+  const handleSavePreferences = (preferences) => {
+    // Save to localStorage with individual keys (backward compatibility)
+    localStorage.setItem("user_gender", preferences.gender || '');
+    localStorage.setItem("user_custom_gender", preferences.customGender || '');
+    localStorage.setItem("user_pronouns", preferences.pronouns || '');
+    localStorage.setItem("user_clothing_size", preferences.clothingSize || '');
+    localStorage.setItem("user_pants_size", preferences.pantsSize || '');
+    localStorage.setItem("user_shoe_size", preferences.shoeSize || '');
+    
+    // Also save as a single object with user-specific key for filtering
+    if (usuario) {
+      localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
+    }
+    
+    // Update states
+    setUserPreferences(preferences);
+  };
 
   switch (currentPage) {
     case 'profile':
-      return (
-        <UserProfile 
-          onBack={handleBack}
-          usuario={usuario}
-          setUsuario={setUsuario}
-          setLogueado={setLogueado}
-          setIsRegisteredUser={setIsRegisteredUser}
-          userPreferences={userPreferences}
-          onSavePreferences={handleSavePreferences}
-          setShowPreferencePanel={setShowPreferencePanel}
-        />
-      ); 
+  return (
+    <UserProfile 
+      onBack={handleBack}
+      usuario={usuario}
+      setUsuario={setUsuario}
+      setLogueado={setLogueado}
+      setIsRegisteredUser={setIsRegisteredUser}
+      userPreferences={userPreferences}
+      onSavePreferences={handleSavePreferences}
+      setShowPreferencePanel={() => {}}
+    />
+  );
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
     case 'terms':
@@ -446,4 +790,3 @@ function App() {
   }
 }
 
-export default App;
