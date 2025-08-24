@@ -91,6 +91,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [haBuscado, setHaBuscado] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  const [showPreferencePanel, setShowPreferencePanel] = useState(false);
   
   // Updated datosRegistro state with all new fields
   const [datosRegistro, setDatosRegistro] = useState({
@@ -876,17 +877,19 @@ export default function App() {
 
   switch (currentPage) {
     case 'profile':
-      return (
-        <UserProfile 
-          onBack={handleBack}
-          usuario={usuario}
-          setUsuario={setUsuario}
-          setLogueado={setLogueado}
-          setIsRegisteredUser={setIsRegisteredUser}
-          userPreferences={userPreferences}
-          onSavePreferences={handleSavePreferences}
-        />
-      ); 
+  case 'profile':
+  return (
+    <UserProfile 
+      onBack={handleBack}
+      usuario={usuario}
+      setUsuario={setUsuario}
+      setLogueado={setLogueado}
+      setIsRegisteredUser={setIsRegisteredUser}
+      userPreferences={userPreferences}
+      onSavePreferences={handleSavePreferences}
+      setShowPreferencePanel={setShowPreferencePanel}
+    />
+  );
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
     case 'terms':
