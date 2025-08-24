@@ -116,8 +116,8 @@ export function UserProfile({
       [field]: value
     }));
 
-    // Reset custom gender and pronouns if gender changes from "Personalizado"
-    if (field === 'gender' && value !== 'Personalizado') {
+    // Reset custom gender and pronouns if gender changes from "custom"
+    if (field === 'gender' && value !== 'custom') {
       setFormData(prev => ({
         ...prev,
         customGender: '',
@@ -137,26 +137,26 @@ export function UserProfile({
   const getGenderResultsLogic = (genderData) => {
     const { gender, customGender, pronouns } = genderData;
     
-    if (gender === 'Hombre') {
-      return 'hombre'; // resultados de hombre
-    } else if (gender === 'Mujer') {
-      return 'mujer'; // resultados de mujer
-    } else if (gender === 'Prefiero no decirlo') {
-      return 'ambos'; // resultados de ambos
-    } else if (gender === 'Personalizado') {
+    if (gender === 'male') {
+      return 'male'; // results for male
+    } else if (gender === 'female') {
+      return 'female'; // results for female
+    } else if (gender === 'I prefer not to say') {
+      return 'both'; // results for both
+    } else if (gender === 'custom') {
       if (customGender && customGender.trim()) {
-        // Si tiene texto libre, mostrar ambos
-        return 'ambos';
-      } else if (pronouns === 'Hombre') {
-        return 'hombre';
-      } else if (pronouns === 'Mujer') {
-        return 'mujer';
-      } else if (pronouns === 'Otro') {
-        return 'ambos';
+        // Si tiene texto libre, mostrar both
+        return 'both';
+      } else if (pronouns === 'male') {
+        return 'male';
+      } else if (pronouns === 'female') {
+        return 'female';
+      } else if (pronouns === 'other') {
+        return 'both';
       }
-      return 'ambos'; // fallback
+      return 'both'; // fallback
     }
-    return 'ambos'; // fallback por defecto
+    return 'both'; // fallback por defecto
   };
 
   const handleSaveChanges = () => {
@@ -362,17 +362,17 @@ export function UserProfile({
   // Gender options
   const genderOptions = [
     { value: '', label: 'Select gender' },
-    { value: 'Mujer', label: 'Mujer' },
-    { value: 'Hombre', label: 'Hombre' },
-    { value: 'Prefiero no decirlo', label: 'Prefiero no decirlo' },
-    { value: 'Personalizado', label: 'Personalizado' }
+    { value: 'female', label: 'female' },
+    { value: 'male', label: 'male' },
+    { value: 'I prefer not to say', label: 'I prefer not to say' },
+    { value: 'custom', label: 'custom' }
   ];
 
   const pronounOptions = [
     { value: '', label: 'Select option' },
-    { value: 'Mujer', label: 'Mujer' },
-    { value: 'Hombre', label: 'Hombre' },
-    { value: 'Otro', label: 'Otro' }
+    { value: 'female', label: 'female' },
+    { value: 'male', label: 'male' },
+    { value: 'other', label: 'other' }
   ];
 
   return (
@@ -498,7 +498,7 @@ export function UserProfile({
             {/* Gender */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Género
+                Gender
               </label>
               <select
                 value={formData.gender}
@@ -516,12 +516,12 @@ export function UserProfile({
               </select>
             </div>
 
-            {/* Custom Gender Fields - Only show when "Personalizado" is selected */}
-            {formData.gender === 'Personalizado' && (
+            {/* Custom Gender Fields - Only show when "Custom" is selected */}
+            {formData.gender === 'custom' && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ¿Cuál es tu género?
+                    What is your gender?
                   </label>
                   <input
                     type="text"
@@ -531,13 +531,13 @@ export function UserProfile({
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent ${
                       !isEditing ? 'bg-gray-100 text-gray-600' : ''
                     }`}
-                    placeholder="Describe tu género"
+                    placeholder="Describe your gender"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prefiero que se me trate como
+                    I prefer to be identified as
                   </label>
                   <select
                     value={formData.pronouns}
@@ -560,7 +560,7 @@ export function UserProfile({
             {/* Clothing Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Talla de ropa general
+                Clothing Size
               </label>
               <input
                 type="text"
@@ -577,7 +577,7 @@ export function UserProfile({
             {/* Pants Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Talla de pantalón/falda
+                Pants / Skirt size
               </label>
               <input
                 type="text"
@@ -594,7 +594,7 @@ export function UserProfile({
             {/* Shoe Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Talla de calzado
+                Shoe Size
               </label>
               <input
                 type="text"
