@@ -788,10 +788,7 @@ export default function App() {
       );
   }
 }
-"border-transparent"
-                    placeholder="Your full name"
-                    required
-                  />
+
                 </div>
 
                 {/* Email */}
