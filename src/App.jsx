@@ -91,7 +91,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [haBuscado, setHaBuscado] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
-  const [showPreferencePanel, setShowPreferencePanel] = useState(false);
+  
   
   // Updated datosRegistro state with all new fields
   const [datosRegistro, setDatosRegistro] = useState({
@@ -107,8 +107,9 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   });
   
   // New states for preferences
-  const [showPreferencePanel, setShowPreferencePanel] = useState(false);
+
   const [showPreferenceReminder, setShowPreferenceReminder] = useState(false);
+  const [showPreferencePanel, setShowPreferencePanel] = useState(false);
 
   // Load user data and preferences on component mount
   useEffect(() => {
@@ -788,8 +789,6 @@ export default function App() {
       );
   }
 }
-
-                </div>
 
                 {/* Email */}
                 <div>
