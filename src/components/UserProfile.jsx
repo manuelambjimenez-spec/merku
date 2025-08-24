@@ -62,23 +62,23 @@ export function UserProfile({
 
   // Load user data on component mount
   useEffect(() => {
-    const savedUser = JSON.parse(localStorage.getItem("usuario") || '{}');
-    const savedEmail = localStorage.getItem("user_email") || '';
+    const savedUser = localStorage.getItem("usuario") || ''; 
+  const savedEmail = localStorage.getItem("user_email") || '';
     
     // Load all user data including new fields
     const userData = {
-      nombre: typeof savedUser === 'string' ? savedUser : savedUser.nombre || usuario || '',
-      email: savedEmail,
-      gender: localStorage.getItem("user_gender") || '',
-      customGender: localStorage.getItem("user_custom_gender") || '',
-      pronouns: localStorage.getItem("user_pronouns") || '',
-      clothingSize: localStorage.getItem("user_clothing_size") || '',
-      pantsSize: localStorage.getItem("user_pants_size") || '',
-      shoeSize: localStorage.getItem("user_shoe_size") || '',
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    };
+    nombre: savedUser, 
+    email: savedEmail,
+    gender: localStorage.getItem("user_gender") || '',
+    customGender: localStorage.getItem("user_custom_gender") || '',
+    pronouns: localStorage.getItem("user_pronouns") || '',
+    clothingSize: localStorage.getItem("user_clothing_size") || '',
+    pantsSize: localStorage.getItem("user_pants_size") || '',
+    shoeSize: localStorage.getItem("user_shoe_size") || '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  };
 
     // Try to load user-specific preferences if available
     try {
