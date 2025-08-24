@@ -411,7 +411,7 @@ export function UserProfile({
           </div>
         )}
 
-        {/* Account Information */}
+        {/* Account Informations */}
         <div className="bg-gray-50 rounded-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">

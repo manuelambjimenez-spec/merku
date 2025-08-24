@@ -748,7 +748,7 @@ export default function App() {
       localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
     }
     
-    // Update state
+    // Update states
     setUserPreferences(preferences);
   };
 
