@@ -611,10 +611,10 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
           </div>
         )}
 
-        {/* Registration Modal - VERSIÓN COMPLETA */}
+       {/* Registration Modal */}
         {mostrarRegistro && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg w-11/12 max-w-lg relative max-h-[90vh] overflow-y-auto">
+            <div className="bg-white p-6 rounded-lg w-11/12 max-w-md relative">
               <button
                 className="absolute top-2 right-2 text-black hover:text-gray-600"
                 onClick={() => setMostrarRegistro(false)}
@@ -628,168 +628,45 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
               </div>
 
               <form onSubmit={handleRegistro} className="space-y-4">
-                {/* Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Name *
+                    Name
                   </label>
                   <input
                     type="text"
                     value={datosRegistro.nombre}
                     onChange={(e) => handleInputRegistro('nombre', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
+                    placeholder="Your full name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={datosRegistro.email}
+                    onChange={(e) => handleInputRegistro('email', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
                     placeholder="your@email.com"
                     required
                   />
                 </div>
 
-                {/* Password */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      value={datosRegistro.password}
-                      onChange={(e) => handleInputRegistro('password', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                      placeholder="Create a password"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Gender */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Gender
-                  </label>
-                  <select
-                    value={datosRegistro.gender || ''}
-                    onChange={(e) => {
-                      const gender = e.target.value;
-                      handleInputRegistro('gender', gender);
-                      if (gender !== 'custom') {
-                        handleInputRegistro('customGender', '');
-                        handleInputRegistro('pronouns', '');
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                  >
-                    <option value="" disabled></option>
-                    <option value="woman">Mujer</option>
-                    <option value="man">Hombre</option>
-                    <option value="prefer-not-to-say">Prefiero no decirlo</option>
-                    <option value="custom">Personalizado</option>
-                  </select>
-                </div>
-
-                {/* Custom Gender Fields */}
-                {datosRegistro.gender === 'custom' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        ¿Cuál es tu género?
-                      </label>
-                      <input
-                        type="text"
-                        value={datosRegistro.customGender || ''}
-                        onChange={(e) => handleInputRegistro('customGender', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                        placeholder="Enter your gender"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-3">
-                        Prefiero que se me trate como:
-                      </label>
-                      <div className="space-y-2">
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="pronouns"
-                            value="woman"
-                            checked={datosRegistro.pronouns === 'woman'}
-                            onChange={(e) => handleInputRegistro('pronouns', e.target.value)}
-                            className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
-                          />
-                          <span className="text-sm">Mujer</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="pronouns"
-                            value="man"
-                            checked={datosRegistro.pronouns === 'man'}
-                            onChange={(e) => handleInputRegistro('pronouns', e.target.value)}
-                            className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
-                          />
-                          <span className="text-sm">Hombre</span>
-                        </label>
-                        <label className="flex items-center">
-                          <input
-                            type="radio"
-                            name="pronouns"
-                            value="other"
-                            checked={datosRegistro.pronouns === 'other'}
-                            onChange={(e) => handleInputRegistro('pronouns', e.target.value)}
-                            className="mr-2 text-[#f7941d] focus:ring-[#f7941d]"
-                          />
-                          <span className="text-sm">Otro</span>
-                        </label>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Clothing Size */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Talla de ropa general
-                  </label>
-                  <select
-                    value={datosRegistro.clothingSize || ''}
-                    onChange={(e) => handleInputRegistro('clothingSize', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                  >
-                    <option value="">Select size</option>
-                    <option value="XS">XS</option>
-                    <option value="S">S</option>
-                    <option value="M">M</option>
-                    <option value="L">L</option>
-                    <option value="XL">XL</option>
-                    <option value="XXL">XXL</option>
-                    <option value="3XL">3XL</option>
-                  </select>
-                </div>
-
-                {/* Pants/Skirt Size */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Talla de pantalón/falda
+                    Password
                   </label>
                   <input
-                    type="text"
-                    value={datosRegistro.pantsSize || ''}
-                    onChange={(e) => handleInputRegistro('pantsSize', e.target.value)}
+                    type="password"
+                    value={datosRegistro.password}
+                    onChange={(e) => handleInputRegistro('password', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="e.g. 32, M, 28W"
-                  />
-                </div>
-
-                {/* Shoe Size */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Talla de calzado
-                  </label>
-                  <input
-                    type="text"
-                    value={datosRegistro.shoeSize || ''}
-                    onChange={(e) => handleInputRegistro('shoeSize', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#f7941d] focus:border-transparent"
-                    placeholder="e.g. 9, 38, 7.5"
+                    placeholder="Create a password"
+                    required
                   />
                 </div>
 
@@ -877,7 +754,6 @@ export default function App() {
 
   switch (currentPage) {
     case 'profile':
-  case 'profile':
   return (
     <UserProfile 
       onBack={handleBack}
@@ -887,7 +763,7 @@ export default function App() {
       setIsRegisteredUser={setIsRegisteredUser}
       userPreferences={userPreferences}
       onSavePreferences={handleSavePreferences}
-      setShowPreferencePanel={setShowPreferencePanel}
+      setShowPreferencePanel={() => {}}
     />
   );
     case 'privacy':
