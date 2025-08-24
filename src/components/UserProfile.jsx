@@ -55,7 +55,7 @@ export function UserProfile({
   
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
+  const [messageType, setMessageType] = useState(''); // 'success' or 'error'
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -65,6 +65,7 @@ export function UserProfile({
     const savedUser = JSON.parse(localStorage.getItem("usuario") || '{}');
     const savedEmail = localStorage.getItem("user_email") || '';
     
+    // Load all user data including new fields
     const userData = {
       nombre: typeof savedUser === 'string' ? savedUser : savedUser.nombre || usuario || '',
       email: savedEmail,
@@ -79,6 +80,7 @@ export function UserProfile({
       confirmPassword: ''
     };
 
+    // Try to load user-specific preferences if available
     try {
       const userSpecificPrefs = localStorage.getItem(`preferencias_${usuario}`);
       if (userSpecificPrefs) {
@@ -97,6 +99,7 @@ export function UserProfile({
     setFormData(userData);
   }, [usuario]);
 
+  // Clear message after 3 seconds
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
@@ -113,6 +116,7 @@ export function UserProfile({
       [field]: value
     }));
 
+    // Reset custom gender and pronouns if gender changes from "Personalizado"
     if (field === 'gender' && value !== 'Personalizado') {
       setFormData(prev => ({
         ...prev,
@@ -129,7 +133,34 @@ export function UserProfile({
     }));
   };
 
+  // Function to determine results based on gender logic
+  const getGenderResultsLogic = (genderData) => {
+    const { gender, customGender, pronouns } = genderData;
+    
+    if (gender === 'Hombre') {
+      return 'hombre'; // resultados de hombre
+    } else if (gender === 'Mujer') {
+      return 'mujer'; // resultados de mujer
+    } else if (gender === 'Prefiero no decirlo') {
+      return 'ambos'; // resultados de ambos
+    } else if (gender === 'Personalizado') {
+      if (customGender && customGender.trim()) {
+        // Si tiene texto libre, mostrar ambos
+        return 'ambos';
+      } else if (pronouns === 'Hombre') {
+        return 'hombre';
+      } else if (pronouns === 'Mujer') {
+        return 'mujer';
+      } else if (pronouns === 'Otro') {
+        return 'ambos';
+      }
+      return 'ambos'; // fallback
+    }
+    return 'ambos'; // fallback por defecto
+  };
+
   const handleSaveChanges = () => {
+    // Validate required fields
     if (!formData.nombre.trim()) {
       setMessage('Name is required');
       setMessageType('error');
@@ -142,9 +173,13 @@ export function UserProfile({
       return;
     }
 
+    // Save changes
     try {
+      // Save basic info
       localStorage.setItem("usuario", formData.nombre);
       localStorage.setItem("user_email", formData.email);
+      
+      // Save user preference fields
       localStorage.setItem("user_gender", formData.gender);
       localStorage.setItem("user_custom_gender", formData.customGender);
       localStorage.setItem("user_pronouns", formData.pronouns);
@@ -152,6 +187,7 @@ export function UserProfile({
       localStorage.setItem("user_pants_size", formData.pantsSize);
       localStorage.setItem("user_shoe_size", formData.shoeSize);
 
+      // Save as user-specific preferences object
       const preferences = {
         gender: formData.gender,
         customGender: formData.customGender,
@@ -162,6 +198,15 @@ export function UserProfile({
       };
       localStorage.setItem(`preferencias_${formData.nombre}`, JSON.stringify(preferences));
 
+      // Save gender results logic for future use
+      const resultsLogic = getGenderResultsLogic({
+        gender: formData.gender,
+        customGender: formData.customGender,
+        pronouns: formData.pronouns
+      });
+      localStorage.setItem("user_results_preference", resultsLogic);
+
+      // Update parent component state
       setUsuario(formData.nombre);
       if (onSavePreferences) {
         onSavePreferences(preferences);
@@ -177,6 +222,7 @@ export function UserProfile({
   };
 
   const handleChangePassword = () => {
+    // Validate password fields
     const savedPassword = localStorage.getItem("user_password");
     
     if (!formData.currentPassword) {
@@ -212,6 +258,7 @@ export function UserProfile({
     try {
       localStorage.setItem("user_password", formData.newPassword);
       
+      // Clear password fields
       setFormData(prev => ({
         ...prev,
         currentPassword: '',
@@ -246,6 +293,7 @@ export function UserProfile({
     }
 
     try {
+      // Remove all user data from localStorage
       const keysToRemove = [
         "usuario",
         "user_email", 
@@ -258,6 +306,7 @@ export function UserProfile({
         "user_shoe_size",
         "user_custom_gender",
         "user_pronouns",
+        "user_results_preference",
         "last_preference_reminder"
       ];
 
@@ -265,9 +314,12 @@ export function UserProfile({
         localStorage.removeItem(key);
       });
 
+      // Reset state
       setLogueado(false);
       setIsRegisteredUser(false);
       setUsuario("");
+      
+      // Go back to main page
       onBack();
     } catch (error) {
       setMessage('Error deleting account. Please try again.');
@@ -277,6 +329,7 @@ export function UserProfile({
 
   const cancelEdit = () => {
     setIsEditing(false);
+    // Reset form data to saved values
     const savedUser = localStorage.getItem("usuario") || '';
     const savedEmail = localStorage.getItem("user_email") || '';
     
@@ -306,6 +359,7 @@ export function UserProfile({
     }));
   };
 
+  // Gender options
   const genderOptions = [
     { value: '', label: 'Select gender' },
     { value: 'Mujer', label: 'Mujer' },
@@ -315,7 +369,7 @@ export function UserProfile({
   ];
 
   const pronounOptions = [
-    { value: '', label: 'Select pronouns' },
+    { value: '', label: 'Select option' },
     { value: 'Mujer', label: 'Mujer' },
     { value: 'Hombre', label: 'Hombre' },
     { value: 'Otro', label: 'Otro' }
@@ -324,6 +378,7 @@ export function UserProfile({
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-2xl mx-auto">
+        {/* Header */}
         <div className="flex items-center mb-8">
           <button 
             onClick={onBack}
@@ -340,6 +395,7 @@ export function UserProfile({
           </div>
         </div>
 
+        {/* Success/Error Message */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
             messageType === 'success' 
@@ -355,6 +411,7 @@ export function UserProfile({
           </div>
         )}
 
+        {/* Account Information */}
         <div className="bg-gray-50 rounded-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -388,6 +445,7 @@ export function UserProfile({
           </div>
 
           <div className="space-y-4">
+            {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Name
@@ -404,6 +462,7 @@ export function UserProfile({
               />
             </div>
 
+            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Email
@@ -420,6 +479,23 @@ export function UserProfile({
               />
             </div>
 
+            {/* Password - Only show info, not editable here */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="flex items-center justify-between">
+                <input
+                  type="password"
+                  value="••••••••"
+                  disabled
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                />
+                <span className="text-xs text-gray-500 ml-3">(Only editable from "Change password")</span>
+              </div>
+            </div>
+
+            {/* Gender */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Género
@@ -440,6 +516,7 @@ export function UserProfile({
               </select>
             </div>
 
+            {/* Custom Gender Fields - Only show when "Personalizado" is selected */}
             {formData.gender === 'Personalizado' && (
               <>
                 <div>
@@ -480,6 +557,7 @@ export function UserProfile({
               </>
             )}
 
+            {/* Clothing Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Talla de ropa general
@@ -496,6 +574,7 @@ export function UserProfile({
               />
             </div>
 
+            {/* Pants Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Talla de pantalón/falda
@@ -512,6 +591,7 @@ export function UserProfile({
               />
             </div>
 
+            {/* Shoe Size */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Talla de calzado
@@ -530,6 +610,7 @@ export function UserProfile({
           </div>
         </div>
 
+        {/* Change Password Section */}
         <div className="bg-gray-50 rounded-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -563,6 +644,7 @@ export function UserProfile({
 
           {showChangePassword && (
             <div className="space-y-4">
+              {/* Current Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Current Password
@@ -585,6 +667,7 @@ export function UserProfile({
                 </div>
               </div>
 
+              {/* New Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   New Password
@@ -607,6 +690,7 @@ export function UserProfile({
                 </div>
               </div>
 
+              {/* Confirm New Password */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Confirm New Password
@@ -632,12 +716,14 @@ export function UserProfile({
           )}
         </div>
 
+        {/* Account Actions */}
         <div className="bg-gray-50 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-6">
             <User size={20} className="text-gray-600" />
-            <h2 className="text-lg font-semibold">Account Actions</h2>
+            <h2 className="text-lg font-semibold">Account</h2>
           </div>
 
+          {/* Logout Button */}
           <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center gap-3 bg-[#f7941d] text-white py-3 px-4 rounded-lg hover:bg-black transition-colors font-medium mb-6"
@@ -646,6 +732,7 @@ export function UserProfile({
             Logout
           </button>
 
+          {/* Danger Zone */}
           <div className="border-t pt-6">
             <div className="text-center">
               <h3 className="text-sm font-medium text-red-600 mb-4">Danger Zone</h3>
@@ -705,4 +792,3 @@ export function UserProfile({
     </div>
   );
 }
-export default UserProfile;
