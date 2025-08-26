@@ -15,8 +15,6 @@ import {
   X,
   Check,
   AlertTriangle,
-  Eye,
-  EyeOff,
   ArrowUp 
 } from "lucide-react";
 
@@ -25,6 +23,7 @@ import { PreferencePanel, PreferenceReminder } from "./components/PreferenceComp
 import { UserProfile } from "./components/UserProfile";
 import { PrivacyPolicy, TermsOfUse, CookiesPolicy } from "./components/LegalPages";
 import ProductCard from "./ProductCard";
+import StoreFilter from "./components/StoreFilter";
 
 // Logo component
 const MerkuLogo = ({ className }) => (
@@ -37,15 +36,15 @@ const MerkuLogo = ({ className }) => (
 
 const products = [
   { id: 1, name: "Wireless Headphones", price: "$89.99", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" },
-  { id: 2, name: "Summer Dress", price: "$45.00", category: "fashion", store: "Zara", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200&h=200&fit=crop" },
-  { id: 3, name: "Running Shoes", price: "$120.00", category: "fashion", store: "Nike", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop" },
-  { id: 4, name: "Gaming Mouse", price: "$65.99", category: "tech", store: "Best Buy", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop" },
-  { id: 5, name: "Smart Watch", price: "$299.99", category: "tech", store: "Apple", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop" },
-  { id: 6, name: "Casual Sneakers", price: "$75.00", category: "fashion", store: "Adidas", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=200&fit=crop" },
-  { id: 7, name: "Bluetooth Speaker", price: "$55.99", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200&h=200&fit=crop" },
-  { id: 8, name: "Winter Jacket", price: "$89.99", category: "fashion", store: "H&M", image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&h=200&fit=crop" },
+  { id: 2, name: "Summer Dress", price: "$45.00", category: "fashion", store: "Temu", image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=200&h=200&fit=crop" },
+  { id: 3, name: "Running Shoes", price: "$120.00", category: "fashion", store: "AliExpress", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop" },
+  { id: 4, name: "Gaming Mouse", price: "$65.99", category: "tech", store: "eBay", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop" },
+  { id: 5, name: "Smart Watch", price: "$299.99", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop" },
+  { id: 6, name: "Casual Sneakers", price: "$75.00", category: "fashion", store: "Temu", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=200&fit=crop" },
+  { id: 7, name: "Bluetooth Speaker", price: "$55.99", category: "tech", store: "AliExpress", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=200&h=200&fit=crop" },
+  { id: 8, name: "Winter Jacket", price: "$89.99", category: "fashion", store: "eBay", image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&h=200&fit=crop" },
   { id: 9, name: "Laptop Stand", price: "$35.00", category: "tech", store: "Amazon", image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=200&h=200&fit=crop" },
-  { id: 10, name: "Designer Jeans", price: "$99.99", category: "fashion", store: "Levi's", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=200&fit=crop" }
+  { id: 10, name: "Designer Jeans", price: "$99.99", category: "fashion", store: "Temu", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=200&fit=crop" }
 ];
 
 // Footer component
@@ -81,7 +80,6 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   const [menuAbierto, setMenuAbierto] = useState(true);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [productosGuardados, setProductosGuardados] = useState([]);
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("All");
   const [mostrarGuardados, setMostrarGuardados] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [mensajeIA, setMensajeIA] = useState("");
@@ -91,25 +89,16 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   const [recomendaciones, setRecomendaciones] = useState([]);
   const [haBuscado, setHaBuscado] = useState(false);
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
-  
-  
-  // Updated datosRegistro state with all new fields
   const [datosRegistro, setDatosRegistro] = useState({
     nombre: "",
     email: "",
-    password: "",
-    gender: "",
-    customGender: "",
-    pronouns: "",
-    clothingSize: "",
-    pantsSize: "",
-    shoeSize: ""
+    password: ""
   });
+  const [selectedStores, setSelectedStores] = useState(["Amazon", "Temu", "AliExpress", "eBay"]);
   
   // New states for preferences
-
-  const [showPreferenceReminder, setShowPreferenceReminder] = useState(false);
   const [showPreferencePanel, setShowPreferencePanel] = useState(false);
+  const [showPreferenceReminder, setShowPreferenceReminder] = useState(false);
 
   // Load user data and preferences on component mount
   useEffect(() => {
@@ -236,50 +225,17 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     setProductosGuardados([]);
   };
 
-  // Updated handleRegistro function
   const handleRegistro = (e) => {
     e.preventDefault();
     if (datosRegistro.nombre && datosRegistro.email && datosRegistro.password) {
-      // Save all user data to localStorage
+      setUsuario(datosRegistro.nombre);
+      setIsRegisteredUser(true);
       localStorage.setItem("usuario", datosRegistro.nombre);
       localStorage.setItem("user_email", datosRegistro.email);
       localStorage.setItem("user_password", datosRegistro.password);
-      localStorage.setItem("user_gender", datosRegistro.gender || '');
-      localStorage.setItem("user_custom_gender", datosRegistro.customGender || '');
-      localStorage.setItem("user_pronouns", datosRegistro.pronouns || '');
-      localStorage.setItem("user_clothing_size", datosRegistro.clothingSize || '');
-      localStorage.setItem("user_pants_size", datosRegistro.pantsSize || '');
-      localStorage.setItem("user_shoe_size", datosRegistro.shoeSize || '');
-      
-      // Update states
-      setUsuario(datosRegistro.nombre);
-      setIsRegisteredUser(true);
       setLogueado(true);
-      
-      // Update user preferences
-      const newPreferences = {
-        gender: datosRegistro.gender,
-        customGender: datosRegistro.customGender,
-        pronouns: datosRegistro.pronouns,
-        clothingSize: datosRegistro.clothingSize,
-        pantsSize: datosRegistro.pantsSize,
-        shoeSize: datosRegistro.shoeSize
-      };
-      setUserPreferences(newPreferences);
-      
-      // Close modal and reset form
       setMostrarRegistro(false);
-      setDatosRegistro({
-        nombre: "",
-        email: "",
-        password: "",
-        gender: "",
-        customGender: "",
-        pronouns: "",
-        clothingSize: "",
-        pantsSize: "",
-        shoeSize: ""
-      });
+      setDatosRegistro({ nombre: "", email: "", password: "" });
     }
   };
 
@@ -290,36 +246,19 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     }));
   };
 
-  // Updated handleSavePreferences function
   const handleSavePreferences = (preferences) => {
-    localStorage.setItem("user_gender", preferences.gender || '');
+    localStorage.setItem("user_gender", preferences.gender);
     localStorage.setItem("user_custom_gender", preferences.customGender || '');
     localStorage.setItem("user_pronouns", preferences.pronouns || '');
-    localStorage.setItem("user_clothing_size", preferences.clothingSize || '');
-    localStorage.setItem("user_pants_size", preferences.pantsSize || '');
-    localStorage.setItem("user_shoe_size", preferences.shoeSize || '');
+    localStorage.setItem("user_clothing_size", preferences.clothingSize);
+    localStorage.setItem("user_pants_size", preferences.pantsSize);
+    localStorage.setItem("user_shoe_size", preferences.shoeSize);
     
     if (usuario) {
       localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
     }
     
     setUserPreferences(preferences);
-  };
-
-  // Helper function to determine target gender for results
-  const getTargetGender = (userPreferences) => {
-    const { gender, customGender, pronouns } = userPreferences;
-    
-    if (gender === 'man') return 'man';
-    if (gender === 'woman') return 'woman';
-    if (gender === 'prefer-not-to-say') return 'both';
-    if (gender === 'custom') {
-      if (pronouns === 'man') return 'man';
-      if (pronouns === 'woman') return 'woman';
-      return 'both'; // For 'other' or no pronouns specified
-    }
-    
-    return 'both'; // Default fallback
   };
 
   const handlePreferenceReminderClose = () => {
@@ -343,7 +282,6 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
 
   const handleMostrarGuardados = () => {
     setMostrarGuardados((prev) => !prev);
-    setCategoriaSeleccionada("All");
   };
 
   // FUNCIONALIDAD DE BÚSQUEDA RESTAURADA
@@ -393,18 +331,17 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     }
   };
 
-  // FILTRADO DE PRODUCTOS RESTAURADO
-  const categorias = ["All", ...new Set(products.map((p) => p.category))];
+  // FILTRADO DE PRODUCTOS ACTUALIZADO (sin categorías, solo tiendas)
   const fuenteProductos = mostrarGuardados ? productosGuardados : products;
   const productosFiltrados = haBuscado
     ? fuenteProductos
         .filter((p) =>
-          categoriaSeleccionada === "All" ? true : p.category === categoriaSeleccionada
-        )
-        .filter((p) =>
           (p.name ?? "").toLowerCase().includes(busqueda.toLowerCase()) ||
           (p.category ?? "").toLowerCase().includes(busqueda.toLowerCase()) ||
           (p.store ?? "").toLowerCase().includes(busqueda.toLowerCase())
+        )
+        .filter((p) => 
+          selectedStores.length === 0 ? true : selectedStores.includes(p.store)
         )
     : [];
 
@@ -429,14 +366,14 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <PenLine size={16} /> New chat
               </button>
               {historial.map((item, idx) => (
-        <button
-          key={idx}
-          onClick={() => handleBuscar(item)}
-          className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
-        >
-          {item}
-        </button>
-      ))}
+	<button
+		key={idx}
+		onClick={() => handleBuscar(item)}
+		className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
+	>
+    {item}
+	</button>
+	))}
               <button
                 onClick={handleMostrarGuardados}
                 className={`text-left text-xs flex items-center gap-2 ${
@@ -446,7 +383,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <Heart size={16} /> Saved
               </button>
               <button 
-                onClick={() => setShowPreferencePanel(true)}
+                onClick={() => console.log('Preferences clicked')}
                 className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
               >
                 <Settings size={16} /> Preferences
@@ -517,29 +454,25 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
             className="flex-1 bg-transparent border-none focus:outline-none placeholder-[#d3d4d7]"
           />
           <button
-            onClick={() => handleBuscar()}
-            className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
-          >
-            <ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
-          </button>
+		onClick={() => handleBuscar()}
+	className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
+	>
+	<ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
+</button>
         </div>
 
-        {/* CATEGORÍAS RESTAURADAS */}
-        <div className="flex flex-wrap justify-center gap-2 mb-6">
-          {categorias.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setCategoriaSeleccionada(cat)}
-              className={`text-xs px-3 py-1 rounded-full border ${
-                categoriaSeleccionada === cat
-                  ? "bg-[#f7941d] text-white border-[#f7941d]"
-                  : "text-[#c2bfbf] border-[#c2bfbf] hover:border-black hover:text-black"
-              } transition`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        {/* FILTRO DE TIENDAS - Solo mostrar si hay búsqueda */}
+        {busqueda.trim() && (
+          <div className="w-full max-w-xl mb-6">
+            <div className="text-xs text-gray-600 mb-2 text-center">Filter by store:</div>
+            <div className="flex justify-center">
+              <StoreFilter 
+                onChange={setSelectedStores}
+                className="justify-center"
+              />
+            </div>
+          </div>
+        )}
 
         {/* MENSAJE IA RESTAURADO */}
         <p className="text-sm text-center text-[#c2bfbf] mb-4 min-h-[1.5rem]">
@@ -612,7 +545,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
           </div>
         )}
 
-       {/* Registration Modal */}
+        {/* Registration Modal */}
         {mostrarRegistro && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg w-11/12 max-w-md relative">
@@ -737,24 +670,24 @@ export default function App() {
 
   const handleSavePreferences = (preferences) => {
     // Save to localStorage with individual keys (backward compatibility)
-    localStorage.setItem("user_gender", preferences.gender || '');
+    localStorage.setItem("user_gender", preferences.gender);
     localStorage.setItem("user_custom_gender", preferences.customGender || '');
     localStorage.setItem("user_pronouns", preferences.pronouns || '');
-    localStorage.setItem("user_clothing_size", preferences.clothingSize || '');
-    localStorage.setItem("user_pants_size", preferences.pantsSize || '');
-    localStorage.setItem("user_shoe_size", preferences.shoeSize || '');
+    localStorage.setItem("user_clothing_size", preferences.clothingSize);
+    localStorage.setItem("user_pants_size", preferences.pantsSize);
+    localStorage.setItem("user_shoe_size", preferences.shoeSize);
     
     // Also save as a single object with user-specific key for filtering
     if (usuario) {
       localStorage.setItem(`preferencias_${usuario}`, JSON.stringify(preferences));
     }
     
-    // Update states
+    // Update state
     setUserPreferences(preferences);
   };
 
   switch (currentPage) {
-    case 'profile':
+   case 'profile':
   return (
     <UserProfile 
       onBack={handleBack}
@@ -764,9 +697,8 @@ export default function App() {
       setIsRegisteredUser={setIsRegisteredUser}
       userPreferences={userPreferences}
       onSavePreferences={handleSavePreferences}
-      setShowPreferencePanel={() => {}}
     />
-  );
+  ); 
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
     case 'terms':
@@ -789,4 +721,3 @@ export default function App() {
       );
   }
 }
-
