@@ -3,6 +3,7 @@ import { X, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const ProductTour = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
   const tourSteps = [
     {
@@ -38,7 +39,7 @@ const ProductTour = ({ isOpen, onClose }) => {
       title: 'Save your sizes',
       text: 'Set your clothing size, shoe size, and gender to make your results even more personal.',
       target: 'user-profile',
-      position: 'right'
+      position: 'left'
     },
     {
       id: 'finish',
@@ -51,9 +52,34 @@ const ProductTour = ({ isOpen, onClose }) => {
 
   const currentTourStep = tourSteps[currentStep];
 
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      document.body.style.overflow = 'hidden';
+      showDemoElements();
+    } else {
+      setIsVisible(false);
+      document.body.style.overflow = 'unset';
+      hideDemoElements();
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      hideDemoElements();
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen && isVisible) {
+      setTimeout(() => {
+        showDemoElements();
+      }, 100);
+    }
+  }, [currentStep, isOpen, isVisible]);
+
   const nextStep = () => {
     if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(prev => prev + 1);
     } else {
       finishTour();
     }
@@ -61,63 +87,73 @@ const ProductTour = ({ isOpen, onClose }) => {
 
   const prevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep(prev => prev - 1);
     }
   };
 
   const finishTour = () => {
     localStorage.setItem('merkuTourCompleted', 'true');
-    onClose();
+    setIsVisible(false);
+    setTimeout(() => {
+      onClose();
+    }, 200);
   };
 
   const skipTour = () => {
     localStorage.setItem('merkuTourCompleted', 'true');
-    onClose();
+    setIsVisible(false);
+    setTimeout(() => {
+      onClose();
+    }, 200);
   };
 
-  // Show demo elements for specific steps and ensure visibility
   const showDemoElements = () => {
-    // Reset store filter visibility first
-    const storeFilterEl = document.getElementById('store-filter');
-    if (storeFilterEl && currentStep !== 2) {
-      storeFilterEl.style.visibility = '';
-      storeFilterEl.style.height = '';
-    }
-
-    // Show store filter for step 3 (make it visible even if no search)
+    // Reset all demo elements first
+    hideDemoElements();
+    
+    // Show store filter for step 3 (index 2)
     if (currentStep === 2) {
-      const storeFilter = document.getElementById('tour-demo-store-filter');
-      if (storeFilter) storeFilter.style.display = 'block';
-      
-      // Also make the real store filter visible for targeting
+      const storeFilterEl = document.getElementById('store-filter');
       if (storeFilterEl) {
         storeFilterEl.style.visibility = 'visible';
         storeFilterEl.style.height = 'auto';
       }
-    } else {
-      const storeFilter = document.getElementById('tour-demo-store-filter');
-      if (storeFilter) storeFilter.style.display = 'none';
+      
+      const demoFilter = document.getElementById('tour-demo-store-filter');
+      if (demoFilter) {
+        demoFilter.style.display = 'block';
+      }
     }
 
-    // Show demo results for step 4
+    // Show demo results for step 4 (index 3)
     if (currentStep === 3) {
       const demoResults = document.getElementById('tour-demo-results');
-      if (demoResults) demoResults.style.display = 'block';
-    } else {
-      const demoResults = document.getElementById('tour-demo-results');
-      if (demoResults) demoResults.style.display = 'none';
+      if (demoResults) {
+        demoResults.style.display = 'block';
+      }
     }
   };
 
-  // Get target element position with fallback
-  const getTargetPosition = () => {
+  const hideDemoElements = () => {
+    const storeFilter = document.getElementById('tour-demo-store-filter');
+    const demoResults = document.getElementById('tour-demo-results');
+    const storeFilterEl = document.getElementById('store-filter');
+    
+    if (storeFilter) storeFilter.style.display = 'none';
+    if (demoResults) demoResults.style.display = 'none';
+    if (storeFilterEl) {
+      storeFilterEl.style.visibility = '';
+      storeFilterEl.style.height = '';
+    }
+  };
+
+  const getTargetElement = () => {
     if (!currentTourStep.target) return null;
     
     let element = document.getElementById(currentTourStep.target);
     
-    // Special handling for elements that might not be visible
+    // Special handling for store filter
     if (!element && currentTourStep.target === 'store-filter') {
-      // Force show store filter temporarily for tour
       const storeFilterEl = document.getElementById('store-filter');
       if (storeFilterEl) {
         storeFilterEl.style.visibility = 'visible';
@@ -126,10 +162,12 @@ const ProductTour = ({ isOpen, onClose }) => {
       }
     }
     
-    if (!element) {
-      console.warn(`Tour element not found: ${currentTourStep.target}`);
-      return null;
-    }
+    return element;
+  };
+
+  const getTargetPosition = () => {
+    const element = getTargetElement();
+    if (!element) return null;
     
     const rect = element.getBoundingClientRect();
     return {
@@ -142,248 +180,326 @@ const ProductTour = ({ isOpen, onClose }) => {
     };
   };
 
-  const targetPos = getTargetPosition();
-
-  // Calculate tooltip position with arrow
   const getTooltipPosition = () => {
+    const targetPos = getTargetPosition();
     const tooltipWidth = currentStep === 0 || currentStep === 5 ? 420 : 320;
-    const tooltipHeight = currentStep === 0 || currentStep === 5 ? 180 : 200;
+    const tooltipHeight = 200;
     const padding = 20;
     const arrowSize = 12;
 
-    if (!targetPos) {
+    if (!targetPos || currentTourStep.position === 'center') {
       return {
-        style: {
+        tooltipStyle: {
+          position: 'fixed',
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          width: tooltipWidth
+          width: tooltipWidth,
+          zIndex: 1002
         },
-        arrowStyle: { display: 'none' }
+        arrowStyle: null,
+        highlightStyle: null
       };
     }
 
-    let top, left, transform = '';
+    let tooltipTop, tooltipLeft, tooltipTransform = '';
     let arrowTop, arrowLeft, arrowTransform = '';
-    let arrowBorder = '';
+    let arrowClass = '';
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
 
     switch (currentTourStep.position) {
       case 'bottom':
-        top = targetPos.bottom + padding + arrowSize;
-        left = targetPos.left + (targetPos.width / 2);
-        transform = 'translateX(-50%)';
+        tooltipTop = Math.min(targetPos.bottom + padding + arrowSize, viewportHeight - tooltipHeight - 20);
+        tooltipLeft = Math.max(20, Math.min(targetPos.left + (targetPos.width / 2), viewportWidth - tooltipWidth - 20));
+        tooltipTransform = 'translateX(-50%)';
         
         arrowTop = targetPos.bottom + padding;
         arrowLeft = targetPos.left + (targetPos.width / 2);
         arrowTransform = 'translateX(-50%)';
-        arrowBorder = 'border-bottom: 12px solid white; border-left: 12px solid transparent; border-right: 12px solid transparent;';
+        arrowClass = 'arrow-top';
         break;
         
       case 'top':
-        top = targetPos.top - tooltipHeight - padding - arrowSize;
-        left = targetPos.left + (targetPos.width / 2);
-        transform = 'translateX(-50%)';
+        tooltipTop = Math.max(20, targetPos.top - tooltipHeight - padding - arrowSize);
+        tooltipLeft = Math.max(20, Math.min(targetPos.left + (targetPos.width / 2), viewportWidth - tooltipWidth - 20));
+        tooltipTransform = 'translateX(-50%)';
         
         arrowTop = targetPos.top - padding - arrowSize;
         arrowLeft = targetPos.left + (targetPos.width / 2);
         arrowTransform = 'translateX(-50%)';
-        arrowBorder = 'border-top: 12px solid white; border-left: 12px solid transparent; border-right: 12px solid transparent;';
+        arrowClass = 'arrow-bottom';
         break;
         
       case 'left':
-        top = targetPos.top + (targetPos.height / 2);
-        left = targetPos.left - tooltipWidth - padding - arrowSize;
-        transform = 'translateY(-50%)';
+        tooltipTop = Math.max(20, Math.min(targetPos.top + (targetPos.height / 2), viewportHeight - tooltipHeight - 20));
+        tooltipLeft = Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize);
+        tooltipTransform = 'translateY(-50%)';
         
         arrowTop = targetPos.top + (targetPos.height / 2);
-        arrowLeft = targetPos.left - padding - arrowSize;
+        arrowLeft = targetPos.left - padding;
         arrowTransform = 'translateY(-50%)';
-        arrowBorder = 'border-left: 12px solid white; border-top: 12px solid transparent; border-bottom: 12px solid transparent;';
+        arrowClass = 'arrow-right';
         break;
         
       case 'right':
-        top = targetPos.top + (targetPos.height / 2);
-        left = targetPos.right + padding + arrowSize;
-        transform = 'translateY(-50%)';
+        tooltipTop = Math.max(20, Math.min(targetPos.top + (targetPos.height / 2), viewportHeight - tooltipHeight - 20));
+        tooltipLeft = Math.min(targetPos.right + padding + arrowSize, viewportWidth - tooltipWidth - 20);
+        tooltipTransform = 'translateY(-50%)';
         
         arrowTop = targetPos.top + (targetPos.height / 2);
         arrowLeft = targetPos.right + padding;
         arrowTransform = 'translateY(-50%)';
-        arrowBorder = 'border-right: 12px solid white; border-top: 12px solid transparent; border-bottom: 12px solid transparent;';
+        arrowClass = 'arrow-left';
         break;
-        
-      default:
-        top = '50%';
-        left = '50%';
-        transform = 'translate(-50%, -50%)';
-        arrowBorder = 'display: none;';
     }
 
     return {
-      style: { top, left, transform, width: tooltipWidth },
+      tooltipStyle: {
+        position: 'fixed',
+        top: tooltipTop,
+        left: tooltipLeft,
+        transform: tooltipTransform,
+        width: tooltipWidth,
+        zIndex: 1002
+      },
       arrowStyle: {
-        position: 'absolute',
+        position: 'fixed',
         top: arrowTop,
         left: arrowLeft,
         transform: arrowTransform,
-        width: 0,
-        height: 0,
-        zIndex: 1002,
-        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-        style: arrowBorder
+        zIndex: 1001
+      },
+      arrowClass,
+      highlightStyle: {
+        position: 'fixed',
+        top: targetPos.top - 4,
+        left: targetPos.left - 4,
+        width: targetPos.width + 8,
+        height: targetPos.height + 8,
+        zIndex: 1000
       }
     };
   };
 
-  const { style: tooltipStyle, arrowStyle } = getTooltipPosition();
+  if (!isOpen || !isVisible) return null;
 
-  // Highlight style for target element
-  const getHighlightStyle = () => {
-    if (!targetPos) return {};
-    
-    return {
-      position: 'absolute',
-      top: targetPos.top - 4,
-      left: targetPos.left - 4,
-      width: targetPos.width + 8,
-      height: targetPos.height + 8,
-      border: '3px solid #f7941d',
-      borderRadius: '8px',
-      boxShadow: '0 0 0 4px rgba(247, 148, 29, 0.2)',
-      pointerEvents: 'none',
-      zIndex: 1001
-    };
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        showDemoElements();
-      }, 100);
-    } else {
-      document.body.style.overflow = 'unset';
-      // Hide all demo elements and reset visibility
-      const storeFilter = document.getElementById('tour-demo-store-filter');
-      const demoResults = document.getElementById('tour-demo-results');
-      const storeFilterEl = document.getElementById('store-filter');
-      
-      if (storeFilter) storeFilter.style.display = 'none';
-      if (demoResults) demoResults.style.display = 'none';
-      if (storeFilterEl) {
-        storeFilterEl.style.visibility = '';
-        storeFilterEl.style.height = '';
-      }
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      // Small delay to ensure DOM elements are positioned
-      setTimeout(() => {
-        showDemoElements();
-      }, 100);
-    }
-  }, [currentStep, isOpen]);
-
-  if (!isOpen) return null;
+  const { tooltipStyle, arrowStyle, arrowClass, highlightStyle } = getTooltipPosition();
 
   return (
     <>
-      <div className="fixed inset-0 z-50">
-        {/* Backdrop with blur effect only (no dark overlay) */}
+      {/* Tour Styles */}
+      <style jsx>{`
+        .tour-overlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(4px);
+          z-index: 999;
+        }
+        
+        .tour-tooltip {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          border: 1px solid #e5e7eb;
+          overflow: hidden;
+        }
+        
+        .tour-arrow {
+          width: 0;
+          height: 0;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .arrow-top {
+          border-left: 12px solid transparent;
+          border-right: 12px solid transparent;
+          border-bottom: 12px solid white;
+        }
+        
+        .arrow-bottom {
+          border-left: 12px solid transparent;
+          border-right: 12px solid transparent;
+          border-top: 12px solid white;
+        }
+        
+        .arrow-left {
+          border-top: 12px solid transparent;
+          border-bottom: 12px solid transparent;
+          border-right: 12px solid white;
+        }
+        
+        .arrow-right {
+          border-top: 12px solid transparent;
+          border-bottom: 12px solid transparent;
+          border-left: 12px solid white;
+        }
+        
+        .tour-highlight {
+          border: 3px solid #f7941d;
+          border-radius: 8px;
+          box-shadow: 0 0 0 4px rgba(247, 148, 29, 0.2);
+          pointer-events: none;
+        }
+
+        .tour-step-indicator {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+        
+        .tour-step-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          transition: background-color 0.2s;
+        }
+        
+        .tour-step-dot.active {
+          background-color: #f7941d;
+        }
+        
+        .tour-step-dot.inactive {
+          background-color: #d3d4d7;
+        }
+        
+        .tour-btn {
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: 500;
+          transition: all 0.2s;
+          cursor: pointer;
+          border: none;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        
+        .tour-btn-primary {
+          background-color: #f7941d;
+          color: white;
+        }
+        
+        .tour-btn-primary:hover {
+          background-color: black;
+        }
+        
+        .tour-btn-secondary {
+          background-color: transparent;
+          color: #c2bfbf;
+          border: 1px solid #e5e7eb;
+        }
+        
+        .tour-btn-secondary:hover {
+          color: #f7941d;
+          background-color: #f3f4f6;
+        }
+        
+        .tour-btn-secondary:disabled {
+          color: #d3d4d7;
+          cursor: not-allowed;
+          opacity: 0.5;
+        }
+        
+        .tour-btn-secondary:disabled:hover {
+          color: #d3d4d7;
+          background-color: transparent;
+        }
+      `}</style>
+
+      {/* Overlay */}
+      <div className="tour-overlay" />
+      
+      {/* Target highlight */}
+      {highlightStyle && (
         <div 
-          className="absolute inset-0 backdrop-blur-sm"
-          style={{
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)'
-          }}
+          className="tour-highlight" 
+          style={highlightStyle}
         />
-        
-        {/* Highlight for target element */}
-        {targetPos && (
-          <div style={getHighlightStyle()} />
-        )}
-        
-        {/* Arrow */}
-        {targetPos && arrowStyle.style !== 'display: none;' && (
-          <div
-            style={{
-              position: 'absolute',
-              top: arrowStyle.top,
-              left: arrowStyle.left,
-              transform: arrowStyle.transform,
-              width: 0,
-              height: 0,
-              zIndex: 1002,
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
-            }}
-          >
-            <div style={{ ...arrowStyle.style }} />
-          </div>
-        )}
-        
-        {/* Tour tooltip - balloon style */}
-        <div
-          className="absolute bg-white rounded-2xl shadow-2xl p-6 border border-gray-100"
-          style={{
-            ...tooltipStyle,
-            maxWidth: tooltipStyle.width,
-            minHeight: currentStep === 0 || currentStep === 5 ? '160px' : '180px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-            zIndex: 1002
-          }}
-        >
+      )}
+      
+      {/* Arrow */}
+      {arrowStyle && arrowClass && (
+        <div 
+          className={`tour-arrow ${arrowClass}`}
+          style={arrowStyle}
+        />
+      )}
+      
+      {/* Tooltip */}
+      <div 
+        className="tour-tooltip"
+        style={tooltipStyle}
+      >
+        <div style={{ padding: '24px' }}>
           {/* Close button */}
           <button
             onClick={skipTour}
-            className="absolute top-4 right-4 text-[#c2bfbf] hover:text-[#f7941d] transition-colors"
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'transparent',
+              border: 'none',
+              color: '#c2bfbf',
+              cursor: 'pointer',
+              padding: '4px',
+              transition: 'color 0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.color = '#f7941d'}
+            onMouseLeave={(e) => e.target.style.color = '#c2bfbf'}
           >
             <X size={20} />
           </button>
           
           {/* Step indicator */}
-          <div className="mb-4">
-            <div className="flex space-x-2 mb-2">
+          <div style={{ marginBottom: '16px' }}>
+            <div className="tour-step-indicator">
               {tourSteps.map((_, index) => (
                 <div
                   key={index}
-                  className={`h-2 w-2 rounded-full transition-colors ${
-                    index <= currentStep ? 'bg-[#f7941d]' : 'bg-[#d3d4d7]'
-                  }`}
+                  className={`tour-step-dot ${index <= currentStep ? 'active' : 'inactive'}`}
                 />
               ))}
             </div>
-            <span className="text-sm text-[#c2bfbf]">
+            <span style={{ fontSize: '14px', color: '#c2bfbf' }}>
               Step {currentStep + 1} of {tourSteps.length}
             </span>
           </div>
           
           {/* Content */}
-          <div className="mb-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-3">
+          <div style={{ marginBottom: '24px' }}>
+            <h3 style={{ 
+              fontSize: '20px', 
+              fontWeight: 'bold', 
+              color: '#1f2937', 
+              marginBottom: '12px',
+              lineHeight: '1.3'
+            }}>
               {currentTourStep.title}
             </h3>
-            <p className="text-[#c2bfbf] leading-relaxed">
+            <p style={{ 
+              color: '#c2bfbf', 
+              lineHeight: '1.5',
+              margin: 0
+            }}>
               {currentTourStep.text}
             </p>
           </div>
           
           {/* Navigation buttons */}
-          <div className="flex justify-between items-center">
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center' 
+          }}>
             <button
               onClick={prevStep}
               disabled={currentStep === 0}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                currentStep === 0
-                  ? 'text-[#d3d4d7] cursor-not-allowed'
-                  : 'text-[#c2bfbf] hover:text-[#f7941d] hover:bg-[#f3f4f6]'
-              }`}
+              className="tour-btn tour-btn-secondary"
             >
               <ArrowLeft size={16} />
               <span>Back</span>
@@ -392,14 +508,14 @@ const ProductTour = ({ isOpen, onClose }) => {
             {currentStep === tourSteps.length - 1 ? (
               <button
                 onClick={finishTour}
-                className="bg-[#f7941d] text-white px-6 py-2 rounded-lg hover:bg-black transition-colors font-medium"
+                className="tour-btn tour-btn-primary"
               >
                 Finish
               </button>
             ) : (
               <button
                 onClick={nextStep}
-                className="flex items-center space-x-2 bg-[#f7941d] text-white px-6 py-2 rounded-lg hover:bg-black transition-colors font-medium"
+                className="tour-btn tour-btn-primary"
               >
                 <span>Next</span>
                 <ArrowRight size={16} />
@@ -409,10 +525,20 @@ const ProductTour = ({ isOpen, onClose }) => {
           
           {/* Skip tour link */}
           {currentStep < tourSteps.length - 1 && (
-            <div className="mt-4 text-center">
+            <div style={{ marginTop: '16px', textAlign: 'center' }}>
               <button
                 onClick={skipTour}
-                className="text-sm text-[#c2bfbf] hover:text-[#f7941d] underline transition-colors"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '14px',
+                  color: '#c2bfbf',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                  transition: 'color 0.2s'
+                }}
+                onMouseEnter={(e) => e.target.style.color = '#f7941d'}
+                onMouseLeave={(e) => e.target.style.color = '#c2bfbf'}
               >
                 Skip tour
               </button>
@@ -423,17 +549,40 @@ const ProductTour = ({ isOpen, onClose }) => {
 
       {/* Demo Elements */}
       
-      {/* Demo Store Filter - shown only during step 3 */}
+      {/* Demo Store Filter */}
       <div 
         id="tour-demo-store-filter" 
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40"
-        style={{ display: 'none' }}
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 40,
+          display: 'none'
+        }}
       >
-        <div className="bg-[#f3f4f6] rounded-xl px-4 py-2 flex items-center gap-2 shadow-lg">
-          <span className="text-sm text-[#c2bfbf]">Stores:</span>
-          <div className="flex gap-2">
+        <div style={{
+          background: '#f3f4f6',
+          borderRadius: '12px',
+          padding: '8px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)'
+        }}>
+          <span style={{ fontSize: '14px', color: '#c2bfbf' }}>Stores:</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
             {['Amazon', 'Temu', 'AliExpress', 'eBay'].map((store) => (
-              <span key={store} className="bg-[#f7941d] text-white px-2 py-1 rounded text-xs">
+              <span 
+                key={store} 
+                style={{
+                  background: '#f7941d',
+                  color: 'white',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  fontSize: '12px'
+                }}
+              >
                 {store}
               </span>
             ))}
@@ -441,25 +590,53 @@ const ProductTour = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Demo Results - shown only during step 4 */}
+      {/* Demo Results */}
       <div 
         id="tour-demo-results" 
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40"
-        style={{ display: 'none' }}
+        style={{
+          position: 'fixed',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 40,
+          display: 'none'
+        }}
       >
-        <div className="bg-white rounded-lg shadow-lg p-4 max-w-lg">
-          <h3 className="text-lg font-semibold mb-3 text-gray-900">Search Results</h3>
-          <div className="grid grid-cols-2 gap-3">
+        <div style={{
+          background: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 10px 25px -3px rgba(0, 0, 0, 0.1)',
+          padding: '16px',
+          maxWidth: '400px'
+        }}>
+          <h3 style={{ 
+            fontSize: '18px', 
+            fontWeight: '600', 
+            marginBottom: '12px', 
+            color: '#1f2937' 
+          }}>
+            Search Results
+          </h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: '1fr 1fr', 
+            gap: '12px' 
+          }}>
             {[
               { name: 'Wireless Earbuds', price: '$79.99', store: 'Amazon' },
               { name: 'Bluetooth Headphones', price: '$95.00', store: 'eBay' },
               { name: 'Gaming Headset', price: '$65.99', store: 'Temu' },
               { name: 'Noise Cancelling', price: '$120.00', store: 'AliExpress' }
             ].map((product, index) => (
-              <div key={index} className="bg-[#f3f4f6] rounded p-2 text-sm">
-                <div className="font-medium text-gray-900">{product.name}</div>
-                <div className="text-[#f7941d] font-semibold">{product.price}</div>
-                <div className="text-[#c2bfbf] text-xs">{product.store}</div>
+              <div key={index} style={{
+                background: '#f3f4f6',
+                borderRadius: '8px',
+                padding: '8px',
+                fontSize: '14px'
+              }}>
+                <div style={{ fontWeight: '500', color: '#1f2937' }}>{product.name}</div>
+                <div style={{ color: '#f7941d', fontWeight: '600' }}>{product.price}</div>
+                <div style={{ color: '#c2bfbf', fontSize: '12px' }}>{product.store}</div>
               </div>
             ))}
           </div>
