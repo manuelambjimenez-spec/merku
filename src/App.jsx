@@ -464,7 +464,6 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
         {/* FILTRO DE TIENDAS - Solo mostrar si hay búsqueda */}
         {busqueda.trim() && (
           <div className="w-full max-w-xl mb-6">
-            <div className="text-xs text-gray-600 mb-2 text-center">Filter by store:</div>
             <div className="flex justify-center">
               <StoreFilter 
                 onChange={setSelectedStores}
