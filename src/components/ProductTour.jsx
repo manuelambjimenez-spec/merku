@@ -75,12 +75,25 @@ const ProductTour = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  // Show demo elements for specific steps
+  // Show demo elements for specific steps and ensure visibility
   const showDemoElements = () => {
-    // Show store filter for step 3
+    // Reset store filter visibility first
+    const storeFilterEl = document.getElementById('store-filter');
+    if (storeFilterEl && currentStep !== 2) {
+      storeFilterEl.style.visibility = '';
+      storeFilterEl.style.height = '';
+    }
+
+    // Show store filter for step 3 (make it visible even if no search)
     if (currentStep === 2) {
       const storeFilter = document.getElementById('tour-demo-store-filter');
       if (storeFilter) storeFilter.style.display = 'block';
+      
+      // Also make the real store filter visible for targeting
+      if (storeFilterEl) {
+        storeFilterEl.style.visibility = 'visible';
+        storeFilterEl.style.height = 'auto';
+      }
     } else {
       const storeFilter = document.getElementById('tour-demo-store-filter');
       if (storeFilter) storeFilter.style.display = 'none';
@@ -96,12 +109,27 @@ const ProductTour = ({ isOpen, onClose }) => {
     }
   };
 
-  // Get target element position
+  // Get target element position with fallback
   const getTargetPosition = () => {
     if (!currentTourStep.target) return null;
     
-    const element = document.getElementById(currentTourStep.target);
-    if (!element) return null;
+    let element = document.getElementById(currentTourStep.target);
+    
+    // Special handling for elements that might not be visible
+    if (!element && currentTourStep.target === 'store-filter') {
+      // Force show store filter temporarily for tour
+      const storeFilterEl = document.getElementById('store-filter');
+      if (storeFilterEl) {
+        storeFilterEl.style.visibility = 'visible';
+        storeFilterEl.style.height = 'auto';
+        element = storeFilterEl;
+      }
+    }
+    
+    if (!element) {
+      console.warn(`Tour element not found: ${currentTourStep.target}`);
+      return null;
+    }
     
     const rect = element.getBoundingClientRect();
     return {
@@ -230,24 +258,38 @@ const ProductTour = ({ isOpen, onClose }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      showDemoElements();
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        showDemoElements();
+      }, 100);
     } else {
       document.body.style.overflow = 'unset';
-      // Hide all demo elements
+      // Hide all demo elements and reset visibility
       const storeFilter = document.getElementById('tour-demo-store-filter');
       const demoResults = document.getElementById('tour-demo-results');
+      const storeFilterEl = document.getElementById('store-filter');
+      
       if (storeFilter) storeFilter.style.display = 'none';
       if (demoResults) demoResults.style.display = 'none';
+      if (storeFilterEl) {
+        storeFilterEl.style.visibility = '';
+        storeFilterEl.style.height = '';
+      }
     }
 
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [isOpen, currentStep]);
+  }, [isOpen]);
 
   useEffect(() => {
-    showDemoElements();
-  }, [currentStep]);
+    if (isOpen) {
+      // Small delay to ensure DOM elements are positioned
+      setTimeout(() => {
+        showDemoElements();
+      }, 100);
+    }
+  }, [currentStep, isOpen]);
 
   if (!isOpen) return null;
 

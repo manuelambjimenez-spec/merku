@@ -471,32 +471,57 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
           </button>
         </div>
 
-        {/* FILTRO DE TIENDAS - Solo mostrar si hay búsqueda */}
-        {busqueda.trim() && (
-          <div id="store-filter" className="w-full max-w-xl mb-6">
-            <div className="flex justify-center">
-              <StoreFilter 
-                onChange={setSelectedStores}
-                className="justify-center"
-              />
-            </div>
+        {/* FILTRO DE TIENDAS - Siempre presente pero oculto si no hay búsqueda */}
+        <div 
+          id="store-filter" 
+          className="w-full max-w-xl mb-6"
+          style={{ 
+            visibility: busqueda.trim() ? 'visible' : 'hidden',
+            height: busqueda.trim() ? 'auto' : '0px',
+            overflow: 'hidden'
+          }}
+        >
+          <div className="flex justify-center">
+            <StoreFilter 
+              onChange={setSelectedStores}
+              className="justify-center"
+            />
           </div>
-        )}
+        </div>
 
         {/* MENSAJE IA RESTAURADO */}
         <p className="text-sm text-center text-[#c2bfbf] mb-4 min-h-[1.5rem]">
           {buscando ? <span className="animate-pulse">Searching...</span> : mensajeIA}
         </p>
 
-        {/* GRID DE PRODUCTOS RESTAURADO */}
-        <div id="results-section" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
-          {productosFiltrados.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onClick={() => setProductoSeleccionado(product)}
-            />
-          ))}
+        {/* GRID DE PRODUCTOS RESTAURADO - Siempre presente */}
+        <div id="results-section" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10 min-h-[200px] w-full max-w-6xl">
+          {productosFiltrados.length > 0 ? (
+            productosFiltrados.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onClick={() => setProductoSeleccionado(product)}
+              />
+            ))
+          ) : (
+            !haBuscado && (
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                <div className="text-[#c2bfbf] mb-4">
+                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                    <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-medium text-[#c2bfbf] mb-2">
+                  Start your search
+                </h3>
+                <p className="text-[#c2bfbf]">
+                  Enter a product or description above to find what you're looking for
+                </p>
+              </div>
+            )
+          )}
         </div>
 
         {/* RECOMENDACIONES RESTAURADAS */}
