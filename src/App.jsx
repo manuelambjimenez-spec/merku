@@ -24,6 +24,7 @@ import { UserProfile } from "./components/UserProfile";
 import { PrivacyPolicy, TermsOfUse, CookiesPolicy } from "./components/LegalPages";
 import ProductCard from "./ProductCard";
 import StoreFilter from "./components/StoreFilter";
+import ProductTour from "./components/ProductTour";
 
 // Logo component
 const MerkuLogo = ({ className }) => (
@@ -99,6 +100,9 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   // New states for preferences
   const [showPreferencePanel, setShowPreferencePanel] = useState(false);
   const [showPreferenceReminder, setShowPreferenceReminder] = useState(false);
+  
+  // Tour state
+  const [showTour, setShowTour] = useState(false);
 
   // Load user data and preferences on component mount
   useEffect(() => {
@@ -144,6 +148,18 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
       }
 
       setUserPreferences(savedPreferences);
+    }
+  }, []);
+
+  // Check if tour should be shown on app load
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('merkuTourCompleted');
+    if (!tourCompleted) {
+      // Small delay to ensure components are rendered
+      const timer = setTimeout(() => {
+        setShowTour(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -347,6 +363,12 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
 
   return (
     <div className="min-h-screen bg-white flex">
+      {/* Product Tour */}
+      <ProductTour 
+        isOpen={showTour} 
+        onClose={() => setShowTour(false)} 
+      />
+
       {/* Sidebar */}
       {logueado && (
         <aside 
@@ -366,14 +388,14 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
                 <PenLine size={16} /> New chat
               </button>
               {historial.map((item, idx) => (
-	<button
-		key={idx}
-		onClick={() => handleBuscar(item)}
-		className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
-	>
-    {item}
-	</button>
-	))}
+                <button
+                  key={idx}
+                  onClick={() => handleBuscar(item)}
+                  className="text-left text-xs ml-6 text-gray-500 hover:text-black truncate leading-none -my-2 py-0.5"
+                >
+                  {item}
+                </button>
+              ))}
               <button
                 onClick={handleMostrarGuardados}
                 className={`text-left text-xs flex items-center gap-2 ${
@@ -391,6 +413,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
               <button 
                 onClick={() => onNavigate('profile')}
                 className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
+                id="user-profile"
               >
                 <User size={16} /> Profile
               </button>
@@ -422,30 +445,10 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
         <MerkuLogo className="w-20 sm:w-24 mt-6 sm:mt-10 mb-4" />
         <h1 className="text-2xl font-bold text-center">Hi, I'm Merku</h1>
         
-        {/* INSTRUCCIONES RESTAURADAS */}
-        {!ocultarInstrucciones && (
-          <div className="text-center text-xs text-[#c2bfbf] mt-8 max-w-md">
-            <p className="mb-2">
-              <span className="text-[#f7941d] font-semibold">Merku</span> is your intelligent IA based shopping assistant, helping you find the right product instantly based on your needs.
-            </p>
-            <p className="mt-4 font-semibold text-[#f7941d]">How it works:</p>
-            <ol className="list-decimal list-inside text-[#c2bfbf]">
-              <li>
-                <span className="text-[#f7941d]">1.</span> Type what you're looking for (e.g. wireless earbuds under $100, office chair with lumbar support)
-              </li>
-              <li>
-                <span className="text-[#f7941d]">2.</span> <span className="text-[#f7941d]">Merku</span> filters and shows smart results in your favourite sites
-              </li>
-              <li>
-                <span className="text-[#f7941d]">3.</span> You choose what fits you best — simple!
-              </li>
-            </ol>
-          </div>
-        )}
-
         {/* BARRA DE BÚSQUEDA RESTAURADA */}
         <div className="bg-[#f3f4f6] rounded-xl px-4 py-2 flex items-center w-full max-w-xl mb-4 mt-6">
           <input
+            id="search-input"
             type="text"
             placeholder="e.g. running shoes size 38"
             value={busqueda}
@@ -454,16 +457,16 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
             className="flex-1 bg-transparent border-none focus:outline-none placeholder-[#d3d4d7]"
           />
           <button
-		onClick={() => handleBuscar()}
-	className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
-	>
-	<ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
-</button>
+            onClick={() => handleBuscar()}
+            className="bg-[#f7941d] rounded-full p-2 hover:bg-black transition-colors"
+          >
+            <ArrowUp className="w-4 h-4 text-black hover:text-white transition-colors" />
+          </button>
         </div>
 
         {/* FILTRO DE TIENDAS - Solo mostrar si hay búsqueda */}
         {busqueda.trim() && (
-          <div className="w-full max-w-xl mb-6">
+          <div id="store-filter" className="w-full max-w-xl mb-6">
             <div className="flex justify-center">
               <StoreFilter 
                 onChange={setSelectedStores}
@@ -479,7 +482,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
         </p>
 
         {/* GRID DE PRODUCTOS RESTAURADO */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
+        <div id="results-section" className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-10">
           {productosFiltrados.map((product) => (
             <ProductCard
               key={product.id}
@@ -639,6 +642,19 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
         />
 
         <Footer onNavigate={onNavigate} />
+
+        {/* Debug button to restart tour (remove in production) */}
+        {!showTour && (
+          <button
+            onClick={() => {
+              localStorage.removeItem('merkuTourCompleted');
+              setShowTour(true);
+            }}
+            className="fixed bottom-4 right-4 bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition-colors z-30"
+          >
+            Restart Tour
+          </button>
+        )}
       </main>
     </div>
   );
@@ -686,18 +702,18 @@ export default function App() {
   };
 
   switch (currentPage) {
-   case 'profile':
-  return (
-    <UserProfile 
-      onBack={handleBack}
-      usuario={usuario}
-      setUsuario={setUsuario}
-      setLogueado={setLogueado}
-      setIsRegisteredUser={setIsRegisteredUser}
-      userPreferences={userPreferences}
-      onSavePreferences={handleSavePreferences}
-    />
-  ); 
+    case 'profile':
+      return (
+        <UserProfile 
+          onBack={handleBack}
+          usuario={usuario}
+          setUsuario={setUsuario}
+          setLogueado={setLogueado}
+          setIsRegisteredUser={setIsRegisteredUser}
+          userPreferences={userPreferences}
+          onSavePreferences={handleSavePreferences}
+        />
+      ); 
     case 'privacy':
       return <PrivacyPolicy onBack={handleBack} />;
     case 'terms':
