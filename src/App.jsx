@@ -412,8 +412,15 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
               </button>
               <button 
                 onClick={() => onNavigate('profile')}
-                className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold"
+                className="text-left text-xs flex items-center gap-2 text-black hover:font-semibold relative z-50"
                 id="user-profile"
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  backdropFilter: 'none',
+                  WebkitBackdropFilter: 'none',
+                  borderRadius: '4px',
+                  padding: '4px 8px'
+                }}
               >
                 <User size={16} /> Profile
               </button>
