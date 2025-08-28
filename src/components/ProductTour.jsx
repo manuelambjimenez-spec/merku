@@ -294,7 +294,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         .tour-overlay {
           position: fixed;
           inset: 0;
-          background: rgba(0, 0, 0, 0.4);
+          background: transparent;
           backdrop-filter: blur(4px);
           z-index: 999;
         }
@@ -342,6 +342,8 @@ const ProductTour = ({ isOpen, onClose }) => {
           border-radius: 8px;
           box-shadow: 0 0 0 4px rgba(247, 148, 29, 0.2);
           pointer-events: none;
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: none;
         }
 
         .tour-step-indicator {
@@ -410,7 +412,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         }
       `}</style>
 
-      {/* Overlay */}
+      {/* Overlay - only blur, no darkening */}
       <div className="tour-overlay" />
       
       {/* Target highlight */}

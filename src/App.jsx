@@ -103,6 +103,10 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   
   // Tour state
   const [showTour, setShowTour] = useState(false);
+  
+  // State to track if tour has been completed and first search done
+  const [tourCompleted, setTourCompleted] = useState(false);
+  const [firstSearchDone, setFirstSearchDone] = useState(false);
 
   // Load user data and preferences on component mount
   useEffect(() => {
@@ -149,12 +153,19 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
 
       setUserPreferences(savedPreferences);
     }
+
+    // Check if tour has been completed and first search done
+    const tourCompletedStored = localStorage.getItem('merkuTourCompleted') === 'true';
+    const firstSearchStored = localStorage.getItem('merkuFirstSearchDone') === 'true';
+    
+    setTourCompleted(tourCompletedStored);
+    setFirstSearchDone(firstSearchStored);
   }, []);
 
   // Check if tour should be shown on app load
   useEffect(() => {
-    const tourCompleted = localStorage.getItem('merkuTourCompleted');
-    if (!tourCompleted) {
+    const tourCompletedStored = localStorage.getItem('merkuTourCompleted');
+    if (!tourCompletedStored) {
       // Small delay to ensure components are rendered
       const timer = setTimeout(() => {
         setShowTour(true);
@@ -303,6 +314,13 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
   // FUNCIONALIDAD DE BÚSQUEDA RESTAURADA
   const handleBuscar = (termino = busqueda) => {
     if (!termino.trim()) return;
+    
+    // Mark first search as done
+    if (!firstSearchDone) {
+      setFirstSearchDone(true);
+      localStorage.setItem('merkuFirstSearchDone', 'true');
+    }
+    
     setBuscando(true);
     setMensajeIA(`Searching for: "${termino}"...`);
     setBusqueda(termino);
@@ -347,6 +365,11 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
     }
   };
 
+  const handleTourClose = () => {
+    setShowTour(false);
+    setTourCompleted(true);
+  };
+
   // FILTRADO DE PRODUCTOS ACTUALIZADO (sin categorías, solo tiendas)
   const fuenteProductos = mostrarGuardados ? productosGuardados : products;
   const productosFiltrados = haBuscado
@@ -366,7 +389,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
       {/* Product Tour */}
       <ProductTour 
         isOpen={showTour} 
-        onClose={() => setShowTour(false)} 
+        onClose={handleTourClose} 
       />
 
       {/* Sidebar */}
@@ -507,18 +530,23 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
           ) : (
             !haBuscado && (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-                <div className="text-[#c2bfbf] mb-4">
-                  <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-                    <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-medium text-[#c2bfbf] mb-2">
-                  Start your search
-                </h3>
-                <p className="text-[#c2bfbf]">
-                  Enter a product or description above to find what you're looking for
-                </p>
+                {/* Only show this message if tour has NOT been completed */}
+                {!tourCompleted && (
+                  <>
+                    <div className="text-[#c2bfbf] mb-4">
+                      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                        <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                    </div>
+                    <h3 className="text-xl font-medium text-[#c2bfbf] mb-2">
+                      Start your search
+                    </h3>
+                    <p className="text-[#c2bfbf]">
+                      Enter a product or description above to find what you're looking for
+                    </p>
+                  </>
+                )}
               </div>
             )
           )}
@@ -675,11 +703,12 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
 
         <Footer onNavigate={onNavigate} />
 
-        {/* Debug button to restart tour (remove in production) */}
-        {!showTour && (
+        {/* Debug button to restart tour - only show if tour completed AND first search not done */}
+        {tourCompleted && !firstSearchDone && (
           <button
             onClick={() => {
               localStorage.removeItem('merkuTourCompleted');
+              setTourCompleted(false);
               setShowTour(true);
             }}
             className="fixed bottom-4 right-4 bg-gray-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700 transition-colors z-30"
