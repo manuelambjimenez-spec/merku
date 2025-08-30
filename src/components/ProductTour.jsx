@@ -206,33 +206,41 @@ const ProductTour = ({ isOpen, onClose }) => {
         break;
         
       case 'top':
-        // CORRECCIÓN: Para step 4, z-index más bajo que highlight
-        const tooltipZIndex = currentStep === 3 ? 999 : 1002;
+        // CORRECCIÓN: Para step 4, mover tooltip a la derecha para no tapar results
+        const isResultsStep = currentStep === 3;
         tooltipTop = Math.max(20, targetPos.top - tooltipHeight - padding - arrowSize);
-        tooltipLeft = Math.max(20, Math.min(targetPos.left + (targetPos.width / 2), viewportWidth - tooltipWidth - 20));
-        tooltipTransform = 'translateX(-50%)';
+        tooltipLeft = isResultsStep 
+          ? Math.min(targetPos.right + 40, viewportWidth - tooltipWidth - 20) // Posicionar a la derecha
+          : Math.max(20, Math.min(targetPos.left + (targetPos.width / 2), viewportWidth - tooltipWidth - 20));
+        tooltipTransform = isResultsStep ? 'none' : 'translateX(-50%)';
         
         arrowTop = targetPos.top - padding - arrowSize;
-        arrowLeft = targetPos.left + (targetPos.width / 2);
-        arrowTransform = 'translateX(-50%)';
+        arrowLeft = isResultsStep 
+          ? targetPos.right + 20 // Flecha también a la derecha
+          : targetPos.left + (targetPos.width / 2);
+        arrowTransform = isResultsStep ? 'none' : 'translateX(-50%)';
         arrowClass = 'arrow-bottom';
         break;
         
       case 'left':
-        // CORRECCIÓN: Para step 5, posicionamiento mejorado
+        // CORRECCIÓN: Para step 5, mover tooltip más hacia abajo para no tapar "Profile"
         const isProfileStep = currentStep === 4; // Step 5 es index 4
-        tooltipTop = Math.max(20, Math.min(targetPos.top + (targetPos.height / 2), viewportHeight - tooltipHeight - 20));
+        tooltipTop = isProfileStep 
+          ? Math.max(20, targetPos.bottom + padding + arrowSize) // Mover abajo del botón Profile
+          : Math.max(20, Math.min(targetPos.top + (targetPos.height / 2), viewportHeight - tooltipHeight - 20));
         tooltipLeft = isProfileStep 
-          ? Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize - 50) // Más separación
+          ? Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize)
           : Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize);
-        tooltipTransform = 'translateY(-50%)';
+        tooltipTransform = isProfileStep ? 'none' : 'translateY(-50%)';
         
-        arrowTop = targetPos.top + (targetPos.height / 2);
+        arrowTop = isProfileStep 
+          ? targetPos.bottom + padding // Flecha apuntando hacia arriba
+          : targetPos.top + (targetPos.height / 2);
         arrowLeft = isProfileStep 
-          ? targetPos.left - padding - 50 // Ajuste para la flecha también
+          ? targetPos.left - padding
           : targetPos.left - padding;
-        arrowTransform = 'translateY(-50%)';
-        arrowClass = 'arrow-right';
+        arrowTransform = isProfileStep ? 'none' : 'translateY(-50%)';
+        arrowClass = isProfileStep ? 'arrow-top' : 'arrow-right'; // Cambiar dirección de flecha
         break;
         
       case 'right':
@@ -254,16 +262,16 @@ const ProductTour = ({ isOpen, onClose }) => {
         left: tooltipLeft,
         transform: tooltipTransform,
         width: tooltipWidth,
-        // CORRECCIÓN: Z-index específico para step 4 y 5
-        zIndex: (currentStep === 3 || currentStep === 4) ? 999 : 1002
+        // CORRECCIÓN: Restaurar z-index alto para todos los steps
+        zIndex: 1002
       },
       arrowStyle: {
         position: 'fixed',
         top: arrowTop,
         left: arrowLeft,
         transform: arrowTransform,
-        // CORRECCIÓN: Z-index específico para step 4 y 5
-        zIndex: (currentStep === 3 || currentStep === 4) ? 998 : 1001
+        // CORRECCIÓN: Restaurar z-index alto para flechas
+        zIndex: 1001
       },
       arrowClass,
       highlightStyle: {
