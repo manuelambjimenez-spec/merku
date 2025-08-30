@@ -531,9 +531,7 @@ function Shopping({ onNavigate, usuario, setUsuario, logueado, setLogueado, user
             !haBuscado && (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 {/* Only show this message if tour has NOT been completed */}
-                {!tourCompleted && (
-                 
-                )}
+                
               </div>
             )
           )}
