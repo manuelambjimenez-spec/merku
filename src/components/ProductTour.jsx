@@ -111,14 +111,8 @@ const ProductTour = ({ isOpen, onClose }) => {
     // Reset all demo elements first
     hideDemoElements();
     
-    // Show store filter for step 3 (index 2)
+    // CORRECCIÓN: Para paso 3, NO mostrar el filtro real, solo el demo
     if (currentStep === 2) {
-      const storeFilterEl = document.getElementById('store-filter');
-      if (storeFilterEl) {
-        storeFilterEl.style.visibility = 'visible';
-        storeFilterEl.style.height = 'auto';
-      }
-      
       const demoFilter = document.getElementById('tour-demo-store-filter');
       if (demoFilter) {
         demoFilter.style.display = 'block';
@@ -137,14 +131,9 @@ const ProductTour = ({ isOpen, onClose }) => {
   const hideDemoElements = () => {
     const storeFilter = document.getElementById('tour-demo-store-filter');
     const demoResults = document.getElementById('tour-demo-results');
-    const storeFilterEl = document.getElementById('store-filter');
     
     if (storeFilter) storeFilter.style.display = 'none';
     if (demoResults) demoResults.style.display = 'none';
-    if (storeFilterEl) {
-      storeFilterEl.style.visibility = '';
-      storeFilterEl.style.height = '';
-    }
   };
 
   const getTargetElement = () => {
@@ -152,14 +141,9 @@ const ProductTour = ({ isOpen, onClose }) => {
     
     let element = document.getElementById(currentTourStep.target);
     
-    // Special handling for store filter
+    // CORRECCIÓN: Para store filter, usar elemento demo en lugar del real
     if (!element && currentTourStep.target === 'store-filter') {
-      const storeFilterEl = document.getElementById('store-filter');
-      if (storeFilterEl) {
-        storeFilterEl.style.visibility = 'visible';
-        storeFilterEl.style.height = 'auto';
-        element = storeFilterEl;
-      }
+      element = document.getElementById('tour-demo-store-filter');
     }
     
     return element;
@@ -222,6 +206,8 @@ const ProductTour = ({ isOpen, onClose }) => {
         break;
         
       case 'top':
+        // CORRECCIÓN: Para step 4, z-index más bajo que highlight
+        const tooltipZIndex = currentStep === 3 ? 999 : 1002;
         tooltipTop = Math.max(20, targetPos.top - tooltipHeight - padding - arrowSize);
         tooltipLeft = Math.max(20, Math.min(targetPos.left + (targetPos.width / 2), viewportWidth - tooltipWidth - 20));
         tooltipTransform = 'translateX(-50%)';
@@ -233,14 +219,18 @@ const ProductTour = ({ isOpen, onClose }) => {
         break;
         
       case 'left':
-        // CORRECCIÓN: Movido más a la derecha para Step 5
-        const leftOffset = currentStep === 4 ? 100 : 0; // Step 5 es index 4
+        // CORRECCIÓN: Para step 5, posicionamiento mejorado
+        const isProfileStep = currentStep === 4; // Step 5 es index 4
         tooltipTop = Math.max(20, Math.min(targetPos.top + (targetPos.height / 2), viewportHeight - tooltipHeight - 20));
-        tooltipLeft = Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize + leftOffset);
+        tooltipLeft = isProfileStep 
+          ? Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize - 50) // Más separación
+          : Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize);
         tooltipTransform = 'translateY(-50%)';
         
         arrowTop = targetPos.top + (targetPos.height / 2);
-        arrowLeft = targetPos.left - padding + leftOffset;
+        arrowLeft = isProfileStep 
+          ? targetPos.left - padding - 50 // Ajuste para la flecha también
+          : targetPos.left - padding;
         arrowTransform = 'translateY(-50%)';
         arrowClass = 'arrow-right';
         break;
@@ -264,14 +254,16 @@ const ProductTour = ({ isOpen, onClose }) => {
         left: tooltipLeft,
         transform: tooltipTransform,
         width: tooltipWidth,
-        zIndex: 1002
+        // CORRECCIÓN: Z-index específico para step 4 y 5
+        zIndex: (currentStep === 3 || currentStep === 4) ? 999 : 1002
       },
       arrowStyle: {
         position: 'fixed',
         top: arrowTop,
         left: arrowLeft,
         transform: arrowTransform,
-        zIndex: 1001
+        // CORRECCIÓN: Z-index específico para step 4 y 5
+        zIndex: (currentStep === 3 || currentStep === 4) ? 998 : 1001
       },
       arrowClass,
       highlightStyle: {
@@ -280,7 +272,8 @@ const ProductTour = ({ isOpen, onClose }) => {
         left: targetPos.left - 4,
         width: targetPos.width + 8,
         height: targetPos.height + 8,
-        zIndex: 1000
+        // CORRECCIÓN: Z-index más alto para highlight en steps críticos
+        zIndex: (currentStep === 3 || currentStep === 4) ? 1001 : 1000
       }
     };
   };
@@ -308,18 +301,12 @@ const ProductTour = ({ isOpen, onClose }) => {
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
           border: 1px solid #e5e7eb;
           overflow: hidden;
-          /* CORRECCIÓN: Eliminar blur del tooltip */
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
         }
         
         .tour-arrow {
           width: 0;
           height: 0;
           filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-          /* CORRECCIÓN: Eliminar blur de la flecha */
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
         }
         
         .arrow-top {
@@ -352,10 +339,6 @@ const ProductTour = ({ isOpen, onClose }) => {
           box-shadow: 0 0 0 4px rgba(247, 148, 29, 0.2);
           pointer-events: none;
           background: rgba(255, 255, 255, 0.05);
-          /* CORRECCIÓN: Elemento destacado SIN blur */
-          backdrop-filter: none !important;
-          -webkit-backdrop-filter: none !important;
-          z-index: 1000;
         }
 
         .tour-step-indicator {
@@ -424,10 +407,9 @@ const ProductTour = ({ isOpen, onClose }) => {
         }
       `}</style>
 
-      {/* CORRECCIÓN: Overlay solo con blur, sin oscurecimiento */}
       <div className="tour-overlay" />
       
-      {/* Target highlight - CORRECCIÓN: Sin blur */}
+      {/* Target highlight */}
       {highlightStyle && (
         <div 
           className="tour-highlight" 
@@ -435,7 +417,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         />
       )}
       
-      {/* Arrow - CORRECCIÓN: Sin blur */}
+      {/* Arrow */}
       {arrowStyle && arrowClass && (
         <div 
           className={`tour-arrow ${arrowClass}`}
@@ -443,7 +425,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         />
       )}
       
-      {/* Tooltip - CORRECCIÓN: Sin blur */}
+      {/* Tooltip */}
       <div 
         className="tour-tooltip"
         style={tooltipStyle}
@@ -561,9 +543,9 @@ const ProductTour = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Demo Elements - CORRECCIÓN: Sin blur */}
+      {/* Demo Elements */}
       
-      {/* Demo Store Filter */}
+      {/* CORRECCIÓN: Demo Store Filter - con mejor z-index */}
       <div 
         id="tour-demo-store-filter" 
         style={{
@@ -571,11 +553,8 @@ const ProductTour = ({ isOpen, onClose }) => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          zIndex: 1001,
-          display: 'none',
-          // CORRECCIÓN: Sin blur en elementos demo
-          backdropFilter: 'none',
-          WebkitBackdropFilter: 'none'
+          zIndex: 1002, // CORRECCIÓN: Z-index más alto para estar encima del highlight
+          display: 'none'
         }}
       >
         <div style={{
@@ -607,7 +586,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Demo Results */}
+      {/* CORRECCIÓN: Demo Results - ajustado para quedar dentro del highlight */}
       <div 
         id="tour-demo-results" 
         style={{
@@ -615,11 +594,8 @@ const ProductTour = ({ isOpen, onClose }) => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          zIndex: 1001,
-          display: 'none',
-          // CORRECCIÓN: Sin blur en elementos demo
-          backdropFilter: 'none',
-          WebkitBackdropFilter: 'none'
+          zIndex: 1000, // CORRECCIÓN: Z-index bajo para quedar dentro del highlight
+          display: 'none'
         }}
       >
         <div style={{
