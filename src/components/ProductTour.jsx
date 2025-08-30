@@ -233,12 +233,14 @@ const ProductTour = ({ isOpen, onClose }) => {
         break;
         
       case 'left':
+        // CORRECCIÓN: Movido más a la derecha para Step 5
+        const leftOffset = currentStep === 4 ? 100 : 0; // Step 5 es index 4
         tooltipTop = Math.max(20, Math.min(targetPos.top + (targetPos.height / 2), viewportHeight - tooltipHeight - 20));
-        tooltipLeft = Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize);
+        tooltipLeft = Math.max(20, targetPos.left - tooltipWidth - padding - arrowSize + leftOffset);
         tooltipTransform = 'translateY(-50%)';
         
         arrowTop = targetPos.top + (targetPos.height / 2);
-        arrowLeft = targetPos.left - padding;
+        arrowLeft = targetPos.left - padding + leftOffset;
         arrowTransform = 'translateY(-50%)';
         arrowClass = 'arrow-right';
         break;
@@ -296,6 +298,7 @@ const ProductTour = ({ isOpen, onClose }) => {
           inset: 0;
           background: transparent;
           backdrop-filter: blur(4px);
+          -webkit-backdrop-filter: blur(4px);
           z-index: 999;
         }
         
@@ -305,12 +308,18 @@ const ProductTour = ({ isOpen, onClose }) => {
           box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
           border: 1px solid #e5e7eb;
           overflow: hidden;
+          /* CORRECCIÓN: Eliminar blur del tooltip */
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
         }
         
         .tour-arrow {
           width: 0;
           height: 0;
           filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+          /* CORRECCIÓN: Eliminar blur de la flecha */
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
         }
         
         .arrow-top {
@@ -343,7 +352,10 @@ const ProductTour = ({ isOpen, onClose }) => {
           box-shadow: 0 0 0 4px rgba(247, 148, 29, 0.2);
           pointer-events: none;
           background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: none;
+          /* CORRECCIÓN: Elemento destacado SIN blur */
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+          z-index: 1000;
         }
 
         .tour-step-indicator {
@@ -412,10 +424,10 @@ const ProductTour = ({ isOpen, onClose }) => {
         }
       `}</style>
 
-      {/* Overlay - only blur, no darkening */}
+      {/* CORRECCIÓN: Overlay solo con blur, sin oscurecimiento */}
       <div className="tour-overlay" />
       
-      {/* Target highlight */}
+      {/* Target highlight - CORRECCIÓN: Sin blur */}
       {highlightStyle && (
         <div 
           className="tour-highlight" 
@@ -423,7 +435,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         />
       )}
       
-      {/* Arrow */}
+      {/* Arrow - CORRECCIÓN: Sin blur */}
       {arrowStyle && arrowClass && (
         <div 
           className={`tour-arrow ${arrowClass}`}
@@ -431,7 +443,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         />
       )}
       
-      {/* Tooltip */}
+      {/* Tooltip - CORRECCIÓN: Sin blur */}
       <div 
         className="tour-tooltip"
         style={tooltipStyle}
@@ -549,7 +561,7 @@ const ProductTour = ({ isOpen, onClose }) => {
         </div>
       </div>
 
-      {/* Demo Elements */}
+      {/* Demo Elements - CORRECCIÓN: Sin blur */}
       
       {/* Demo Store Filter */}
       <div 
@@ -559,8 +571,11 @@ const ProductTour = ({ isOpen, onClose }) => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          zIndex: 40,
-          display: 'none'
+          zIndex: 1001,
+          display: 'none',
+          // CORRECCIÓN: Sin blur en elementos demo
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none'
         }}
       >
         <div style={{
@@ -600,8 +615,11 @@ const ProductTour = ({ isOpen, onClose }) => {
           top: '50%',
           left: '50%',
           transform: 'translate(-50%, -50%)',
-          zIndex: 40,
-          display: 'none'
+          zIndex: 1001,
+          display: 'none',
+          // CORRECCIÓN: Sin blur en elementos demo
+          backdropFilter: 'none',
+          WebkitBackdropFilter: 'none'
         }}
       >
         <div style={{
